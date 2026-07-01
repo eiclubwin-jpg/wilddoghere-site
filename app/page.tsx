@@ -183,7 +183,7 @@ export default function Home() {
             </ul>
           </div>
           <div className="flex items-center md:justify-end">
-            <CTAButton href="mailto:hello@wilddoghere.com" variant="secondary">
+            <CTAButton href="mailto:wilddoghere@gmail.com" variant="secondary">
               寄信洽詢合作
             </CTAButton>
           </div>
@@ -197,17 +197,19 @@ export default function Home() {
             title="社群與聯絡方式"
             description="社群資料集中維護在 data/socialLinks.ts。正式帳號確認後，直接替換連結與 handle 即可。"
           />
-          <div className="grid gap-5 md:grid-cols-4">
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-5">
             {socialLinks.map((link) => (
               <a
                 key={link.label}
                 href={link.href}
+                target={link.href.startsWith("http") ? "_blank" : undefined}
+                rel={link.href.startsWith("http") ? "noreferrer" : undefined}
                 className="rounded-[1.25rem] border border-cocoa/10 bg-cream p-6 transition hover:-translate-y-1 hover:bg-white"
               >
                 <div className="flex items-start justify-between gap-3">
                   <h3 className="text-xl font-bold text-coffee">{link.label}</h3>
                   <span className="rounded-full bg-white px-2.5 py-1 text-[11px] font-semibold text-cocoa/55">
-                    {link.status === "live" ? "Live" : "Pending"}
+                    {link.status === "active" ? "Active" : "Pending"}
                   </span>
                 </div>
                 <p className="mt-2 text-sm font-semibold text-clay">
@@ -223,6 +225,19 @@ export default function Home() {
       <footer className="bg-coffee px-5 py-8 text-cream sm:px-8">
         <div className="mx-auto flex max-w-7xl flex-col gap-3 text-sm sm:flex-row sm:items-center sm:justify-between">
           <p className="font-semibold">WildDogHere｜野狗軍團出沒中</p>
+          <div className="flex flex-wrap gap-x-4 gap-y-2 text-cream/75">
+            {socialLinks.map((link) => (
+              <a
+                key={link.label}
+                href={link.href}
+                target={link.href.startsWith("http") ? "_blank" : undefined}
+                rel={link.href.startsWith("http") ? "noreferrer" : undefined}
+                className="transition hover:text-cream"
+              >
+                {link.label}
+              </a>
+            ))}
+          </div>
           <p className="text-cream/65">
             © {new Date().getFullYear()} WildDogHere. Built for family stories.
           </p>

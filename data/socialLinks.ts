@@ -3,36 +3,43 @@ export type SocialLink = {
   href: string;
   note: string;
   handle: string;
-  status: "live" | "pending";
+  status: "active" | "pending";
 };
 
 export const socialLinks: SocialLink[] = [
   {
-    label: "Official Site",
-    href: "https://www.wilddoghere.com",
+    label: "個人部落格／官網",
+    href: "https://www.wilddoghere.com/",
     note: "品牌官網與合作入口",
-    handle: "wilddoghere.com",
-    status: "live"
+    handle: "www.wilddoghere.com",
+    status: "active"
   },
   {
     label: "Instagram",
-    href: "https://instagram.com/",
-    note: "日常照片與限時動態，正式帳號確認後替換連結",
-    handle: "待補正式帳號",
-    status: "pending"
+    href: "https://www.instagram.com/wilddoghere/",
+    note: "日常照片、限時動態與生活紀錄",
+    handle: "@wilddoghere",
+    status: "active"
   },
   {
     label: "YouTube",
-    href: "https://youtube.com/",
-    note: "開箱、旅行與家庭紀錄，正式頻道確認後替換連結",
-    handle: "待補正式頻道",
-    status: "pending"
+    href: "https://www.youtube.com/@wilddoghere",
+    note: "野狗軍團出沒中的開箱、旅行與家庭紀錄",
+    handle: "野狗軍團出沒中",
+    status: "active"
+  },
+  {
+    label: "Facebook",
+    href: "https://www.facebook.com/profile.php?id=61591632385768",
+    note: "社群貼文、活動更新與品牌近況",
+    handle: "WildDogHere",
+    status: "active"
   },
   {
     label: "合作信箱",
-    href: "mailto:hello@wilddoghere.com",
+    href: "mailto:wilddoghere@gmail.com",
     note: "品牌合作、內容邀約與產品體驗提案",
-    handle: "hello@wilddoghere.com",
-    status: "live"
+    handle: "wilddoghere@gmail.com",
+    status: "active"
   }
 ];

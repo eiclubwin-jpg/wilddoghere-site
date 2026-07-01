@@ -73,15 +73,15 @@ export const characters: Character[] = [
   },
   {
     id: "third-kid",
-    name: "三寶",
+    name: "小野狗三號",
     dogType: "雪納瑞",
-    roleTitle: "觀察型小幫手",
-    keywords: ["細節觀察", "家庭互動", "陪伴感"],
+    roleTitle: "聰明可愛 × 記憶力好的小弟角色",
+    keywords: ["聰明", "記憶力好", "黏媽媽", "玩具開箱", "童趣"],
     description:
-      "用安靜但敏銳的角度補上家庭互動裡的小細節，讓內容有更多陪伴感與層次。",
-    quote: "慢慢看，也會看到很多有趣的事。",
+      "看起來小小的，腦袋卻轉很快，是野狗軍團裡的可愛小隊員。",
+    quote: "我記得啊，上次不是這樣說的。",
     image: "/images/characters/third-kid.png",
-    imageAlt: "三寶雪納瑞角色圖",
+    imageAlt: "小野狗三號雪納瑞角色圖",
     isCoreNarrator: false
   },
   {
