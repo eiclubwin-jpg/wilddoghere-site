@@ -14,6 +14,13 @@ const navItems = [
   { label: "合作", href: "#collaboration" }
 ];
 
+const collaborationPoints = [
+  "親子生活用品、玩具、食品、旅遊與收藏相關合作",
+  "以真實使用情境、家庭節奏與自然敘事呈現",
+  "可配合短影音、圖文紀錄、開箱心得與活動出席",
+  "合作內容會保留體驗觀點，不做過度商業化包裝"
+];
+
 export default function Home() {
   const narratorCards = characters.slice(0, 2);
 
@@ -59,7 +66,7 @@ export default function Home() {
               </span>
             </h1>
             <p className="mt-7 max-w-2xl text-lg leading-9 text-cocoa/80">
-              一個以家族共同經營為目標的生活型社群品牌，由野狗爸與野狗媽帶路，記錄親子生活、玩具開箱、美食旅行、收藏分享與家庭日常。
+              一個以家族共同經營為目標的生活型社群品牌，由野狗爸與野狗媽帶路，記錄親子生活、玩具開箱、美食旅行、收藏分享與自然合作體驗。
             </p>
             <div className="mt-9 flex flex-col gap-3 sm:flex-row">
               <CTAButton href="#contents">看看代表作品</CTAButton>
@@ -130,7 +137,7 @@ export default function Home() {
           <SectionTitle
             eyebrow="Characters"
             title="野狗軍團角色介紹"
-            description="角色設定先保持簡潔，方便未來依照頻道內容與家庭成員定位逐步擴充。"
+            description="角色設定已保留正式圖片欄位。未來只要把角色圖放進 public/images/characters 並更新資料檔，就能替換目前的佔位視覺。"
           />
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {characters.map((character) => (
@@ -144,8 +151,8 @@ export default function Home() {
         <div className="mx-auto max-w-7xl">
           <SectionTitle
             eyebrow="Contents"
-            title="代表作品方向"
-            description="先以三種內容主軸呈現品牌輪廓，後續可以直接在資料檔新增卡片。"
+            title="代表作品與內容主軸"
+            description="先以六種內容卡片呈現品牌輪廓，包含旅行、玩具、美食、收藏、家庭企劃與合作實測。"
           />
           <div className="grid gap-6 md:grid-cols-3">
             {contents.map((content) => (
@@ -165,8 +172,15 @@ export default function Home() {
               適合自然融入家庭生活的合作內容
             </h2>
             <p className="mt-5 text-base leading-8 text-cream/80">
-              歡迎玩具、親子、旅遊、美食、生活用品與收藏相關品牌洽詢。合作內容會以真實體驗、家庭視角與可長期累積的故事為主。
+              歡迎與家庭生活、親子體驗、玩具收藏、美食旅行和日常用品相關的品牌洽詢。野狗軍團適合自然融入生活場景的內容合作，重點是讓觀眾看見真實使用方式與家庭互動，而不是硬式廣告。
             </p>
+            <ul className="mt-6 grid gap-3 text-sm leading-6 text-cream/78 sm:grid-cols-2">
+              {collaborationPoints.map((point) => (
+                <li key={point} className="rounded-[1rem] bg-cream/10 px-4 py-3">
+                  {point}
+                </li>
+              ))}
+            </ul>
           </div>
           <div className="flex items-center md:justify-end">
             <CTAButton href="mailto:hello@wilddoghere.com" variant="secondary">
@@ -181,16 +195,24 @@ export default function Home() {
           <SectionTitle
             eyebrow="Contact"
             title="社群與聯絡方式"
-            description="目前先放置社群入口與合作信箱 placeholder，正式上線前可替換成真實連結。"
+            description="社群資料集中維護在 data/socialLinks.ts。正式帳號確認後，直接替換連結與 handle 即可。"
           />
-          <div className="grid gap-5 md:grid-cols-3">
+          <div className="grid gap-5 md:grid-cols-4">
             {socialLinks.map((link) => (
               <a
                 key={link.label}
                 href={link.href}
                 className="rounded-[1.25rem] border border-cocoa/10 bg-cream p-6 transition hover:-translate-y-1 hover:bg-white"
               >
-                <h3 className="text-xl font-bold text-coffee">{link.label}</h3>
+                <div className="flex items-start justify-between gap-3">
+                  <h3 className="text-xl font-bold text-coffee">{link.label}</h3>
+                  <span className="rounded-full bg-white px-2.5 py-1 text-[11px] font-semibold text-cocoa/55">
+                    {link.status === "live" ? "Live" : "Pending"}
+                  </span>
+                </div>
+                <p className="mt-2 text-sm font-semibold text-clay">
+                  {link.handle}
+                </p>
                 <p className="mt-2 text-sm leading-6 text-cocoa/70">{link.note}</p>
               </a>
             ))}
