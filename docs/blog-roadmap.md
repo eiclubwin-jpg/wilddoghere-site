@@ -4,7 +4,7 @@
 
 ## Phase 2：先保留資料結構
 
-目前以 `data/contents.ts` 管理代表作品卡片，先不建立文章頁。卡片可標示內容方向、格式、狀態與未來連結。
+目前以 `data/contents.ts` 管理文章資料，先不建立文章頁。首頁會依 `featured`、`date`、`category`、`status` 顯示精選文章、最新文章與文章分類入口。
 
 ## Phase 3：加入靜態文章頁
 
@@ -48,4 +48,4 @@ content/posts/toy-unboxing-first-note.mdx
 - 需要排程、草稿、多人審稿
 - 需要大量圖片管理與搜尋
 
-在那之前，靜態文章最適合目前的品牌官網 MVP。
+在那之前，靜態文章最適合目前的部落格型網站 MVP。

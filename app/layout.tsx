@@ -9,22 +9,23 @@ export const metadata: Metadata = {
     template: "%s｜WildDogHere"
   },
   description:
-    "WildDogHere／野狗軍團出沒中，是由野狗爸與野狗媽共同經營的生活型社群品牌，記錄親子生活、玩具開箱、美食旅行、收藏分享、家庭日常與自然合作體驗。",
+    "WildDogHere／野狗軍團出沒中，是一個記錄家族日常、親子開箱、玩具收藏、美食旅行與生活實測的部落格。",
   keywords: [
     "WildDogHere",
     "野狗軍團出沒中",
-    "親子生活",
+    "家族生活部落格",
+    "親子開箱",
     "玩具開箱",
+    "玩具收藏",
     "家庭日常",
     "美食旅行",
-    "收藏分享",
-    "家庭實測",
-    "親子合作"
+    "生活實測",
+    "3C開箱"
   ],
   openGraph: {
     title: "WildDogHere｜野狗軍團出沒中",
     description:
-      "以家庭為中心的生活型社群品牌，記錄親子生活、玩具開箱、美食旅行、收藏分享與自然合作體驗。",
+      "由野狗爸與野狗媽共同經營的家族生活部落格，分享親子開箱、玩具收藏、美食旅行、生活用品與日常故事。",
     type: "website",
     locale: "zh_TW",
     url: "https://www.wilddoghere.com",

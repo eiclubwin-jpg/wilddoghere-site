@@ -1,5 +1,4 @@
 import { CTAButton } from "@/components/CTAButton";
-import { CharacterCard } from "@/components/CharacterCard";
 import { ContentCard } from "@/components/ContentCard";
 import { SectionTitle } from "@/components/SectionTitle";
 import { characters } from "@/data/characters";
@@ -7,47 +6,104 @@ import { contents } from "@/data/contents";
 import { socialLinks } from "@/data/socialLinks";
 
 const navItems = [
-  { label: "品牌介紹", href: "#about" },
-  { label: "雙核心", href: "#narrators" },
-  { label: "角色", href: "#characters" },
-  { label: "作品", href: "#contents" },
-  { label: "合作", href: "#collaboration" }
+  { label: "首頁", href: "#" },
+  { label: "關於野狗軍團", href: "#about" },
+  { label: "親子開箱", href: "#category-parenting" },
+  { label: "3C科技生活", href: "#category-tech" },
+  { label: "玩具收藏", href: "#category-toys" },
+  { label: "美食旅行", href: "#category-food-travel" },
+  { label: "生活用品", href: "#category-lifestyle" },
+  { label: "合作洽詢", href: "#collaboration" }
 ];
 
-const collaborationPoints = [
-  "親子生活用品、玩具、食品、旅遊與收藏相關合作",
-  "以真實使用情境、家庭節奏與自然敘事呈現",
-  "可配合短影音、圖文紀錄、開箱心得與活動出席",
-  "合作內容會保留體驗觀點，不做過度商業化包裝"
+const categoryEntries: Array<{
+  id: string;
+  title: string;
+  description: string;
+}> = [
+  {
+    id: "category-parenting",
+    title: "親子開箱",
+    description: "孩子真實反應、親子共玩體驗與家庭日常裡的用品實測。"
+  },
+  {
+    id: "category-toys",
+    title: "玩具收藏",
+    description: "Tomica、收藏玩具與大人小孩都會想靠近的開箱紀錄。"
+  },
+  {
+    id: "category-food-travel",
+    title: "美食旅行",
+    description: "親子用餐、家族聚會、旅行規劃與適合一家人的出遊節奏。"
+  },
+  {
+    id: "category-lifestyle",
+    title: "生活用品",
+    description: "外出、收納、育兒與家庭生活裡真正用得到的小物分享。"
+  },
+  {
+    id: "category-tech",
+    title: "3C科技生活",
+    description: "拍攝設備、充電配件、收納包與科技用品的生活化實測。"
+  },
+  {
+    id: "category-daily",
+    title: "野狗日常",
+    description: "一家人每天出沒的片段、笑點、觀察與值得留下的小故事。"
+  }
 ];
+
+const collaborationTypes = [
+  "親子用品",
+  "玩具與收藏",
+  "美食體驗",
+  "旅遊住宿",
+  "生活用品",
+  "3C用品",
+  "品牌活動"
+];
+
+const featuredPosts = contents.filter((content) => content.featured).slice(0, 3);
+const latestPosts = [...contents]
+  .sort(
+    (current, next) =>
+      new Date(next.date).getTime() - new Date(current.date).getTime()
+  )
+  .slice(0, 6);
+
+const coreNarrators = characters.filter((character) => character.isCoreNarrator);
+const kidMembers = characters.filter((character) =>
+  ["big-kid", "second-kid", "third-kid"].includes(character.id)
+);
+const supportMembers = characters.filter((character) =>
+  ["grandpa", "grandma"].includes(character.id)
+);
 
 export default function Home() {
-  const narratorCards = characters.slice(0, 2);
-
   return (
     <main className="overflow-hidden">
       <header className="sticky top-0 z-30 border-b border-cocoa/10 bg-cream/90 backdrop-blur">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 sm:px-8">
-          <a href="#" className="text-lg font-black text-coffee">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-5 px-5 py-4 sm:px-8">
+          <a href="#" className="shrink-0 text-lg font-black text-coffee">
             WildDogHere
             <span className="block text-xs font-semibold text-clay">
               野狗軍團出沒中
             </span>
           </a>
-          <nav className="hidden items-center gap-7 md:flex">
+          <nav className="hidden min-w-0 flex-1 items-center justify-end gap-5 lg:flex">
             {navItems.map((item) => (
               <a
                 key={item.href}
                 href={item.href}
-                className="text-sm font-semibold text-cocoa/75 transition hover:text-clay"
+                className="whitespace-nowrap text-sm font-semibold text-cocoa/75 transition hover:text-clay"
               >
                 {item.label}
               </a>
             ))}
           </nav>
-          <div className="hidden sm:block">
-            <CTAButton href="#contact" variant="secondary">
-              聯絡我們
+          <div className="hidden sm:block lg:hidden">
+            <CTAButton href="#latest" variant="secondary">
+              最新文章
             </CTAButton>
           </div>
         </div>
@@ -57,7 +113,7 @@ export default function Home() {
         <div className="mx-auto grid min-h-[calc(100vh-77px)] max-w-7xl items-center gap-12 px-5 py-16 sm:px-8 lg:grid-cols-[1.05fr_0.95fr] lg:py-20">
           <div>
             <p className="mb-5 w-fit rounded-full bg-white/75 px-4 py-2 text-sm font-semibold text-clay shadow-sm">
-              Family stories, toys, food and little trips.
+              家族生活 x 親子開箱 x 3C開箱 x 玩具收藏 x 美食旅行
             </p>
             <h1 className="max-w-4xl text-5xl font-black leading-tight text-coffee sm:text-6xl lg:text-7xl">
               WildDogHere
@@ -66,98 +122,141 @@ export default function Home() {
               </span>
             </h1>
             <p className="mt-7 max-w-2xl text-lg leading-9 text-cocoa/80">
-              一個以家族共同經營為目標的生活型社群品牌，由野狗爸與野狗媽帶路，記錄親子生活、玩具開箱、美食旅行、收藏分享與自然合作體驗。
+              一個記錄家族日常、親子開箱、玩具收藏、美食旅行與生活實測的部落格。
+            </p>
+            <p className="mt-5 max-w-2xl text-base leading-8 text-cocoa/72">
+              我們用野狗爸與野狗媽的雙視角，分享一家人在日常生活裡的真實體驗。有時開箱、有時旅行，有時只是家裡又發生一件很好笑的小事。
             </p>
             <div className="mt-9 flex flex-col gap-3 sm:flex-row">
-              <CTAButton href="#contents">看看代表作品</CTAButton>
-              <CTAButton href="#collaboration" variant="secondary">
-                合作洽詢
+              <CTAButton href="#latest">看最新文章</CTAButton>
+              <CTAButton href="#about" variant="secondary">
+                認識野狗軍團
               </CTAButton>
             </div>
           </div>
 
           <div className="hand-drawn relative mx-auto w-full max-w-xl bg-white/70 p-5 shadow-soft">
             <div className="rounded-[1.5rem] bg-butter p-6">
-              <div className="grid grid-cols-2 gap-4">
-                {["親子日常", "玩具開箱", "美食旅行", "收藏分享"].map(
-                  (label, index) => (
-                    <div
-                      key={label}
-                      className={`flex aspect-square items-center justify-center rounded-[1.25rem] border border-cocoa/10 bg-cream text-center text-lg font-bold text-cocoa shadow-sm ${
-                        index % 2 === 0 ? "rotate-[-1deg]" : "rotate-[1deg]"
-                      }`}
-                    >
-                      {label}
-                    </div>
-                  )
-                )}
+              <div className="grid gap-4">
+                {latestPosts.slice(0, 4).map((post, index) => (
+                  <a
+                    key={post.id}
+                    href="#latest"
+                    className={`rounded-[1.25rem] border border-cocoa/10 bg-cream px-5 py-4 shadow-sm ${
+                      index % 2 === 0 ? "rotate-[-0.5deg]" : "rotate-[0.5deg]"
+                    }`}
+                  >
+                    <p className="text-xs font-semibold text-clay">
+                      {post.category}
+                    </p>
+                    <p className="mt-1 text-base font-bold leading-6 text-coffee">
+                      {post.title}
+                    </p>
+                  </a>
+                ))}
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      <section id="about" className="bg-cream px-5 py-20 sm:px-8">
-        <div className="mx-auto max-w-5xl">
-          <SectionTitle
-            eyebrow="About"
-            title="把一家人的生活，整理成可以一起回看的故事"
-            description="WildDogHere 不追求誇張表演，也不把日常包裝成距離很遠的品牌形象。我們從家庭視角出發，分享真實、溫暖、有記憶點的生活內容。"
-          />
-          <div className="grid gap-5 md:grid-cols-3">
-            {["真實親子節奏", "收藏與玩具觀點", "家庭感內容企劃"].map((item) => (
-              <div
-                key={item}
-                className="rounded-[1.25rem] border border-cocoa/10 bg-white/75 p-6 text-center text-lg font-bold text-cocoa"
-              >
-                {item}
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section id="narrators" className="px-5 py-20 sm:px-8">
+      <section id="featured" className="bg-cream px-5 py-20 sm:px-8">
         <div className="mx-auto max-w-7xl">
           <SectionTitle
-            eyebrow="Core Narrators"
-            title="野狗爸與野狗媽，雙核心敘事者"
-            description="一個負責觀察與探索，一個負責整理與記錄。兩種視角共同構成野狗軍團的內容溫度。"
-          />
-          <div className="grid gap-6 md:grid-cols-2">
-            {narratorCards.map((character) => (
-              <CharacterCard key={character.name} character={character} />
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section id="characters" className="bg-linen px-5 py-20 sm:px-8">
-        <div className="mx-auto max-w-7xl">
-          <SectionTitle
-            eyebrow="Characters"
-            title="野狗軍團角色介紹"
-            description="角色設定已保留正式圖片欄位。未來只要把角色圖放進 public/images/characters 並更新資料檔，就能替換目前的佔位視覺。"
-          />
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {characters.map((character) => (
-              <CharacterCard key={character.name} character={character} />
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section id="contents" className="bg-cream px-5 py-20 sm:px-8">
-        <div className="mx-auto max-w-7xl">
-          <SectionTitle
-            eyebrow="Contents"
-            title="代表作品與內容主軸"
-            description="先以六種內容卡片呈現品牌輪廓，包含旅行、玩具、美食、收藏、家庭企劃與合作實測。"
+            eyebrow="Featured Posts"
+            title="精選文章"
+            description="先用目前代表內容作為精選文章，未來只要在資料檔把文章標成 featured，就會出現在這裡。"
           />
           <div className="grid gap-6 md:grid-cols-3">
-            {contents.map((content) => (
-              <ContentCard key={content.title} content={content} />
+            {featuredPosts.map((content) => (
+              <ContentCard key={content.id} content={content} />
             ))}
+          </div>
+        </div>
+      </section>
+
+      <section id="latest" className="bg-linen px-5 py-20 sm:px-8">
+        <div className="mx-auto max-w-7xl">
+          <SectionTitle
+            eyebrow="Latest Posts"
+            title="最新文章"
+            description="依文章日期排序。若連結尚未正式發布，卡片會顯示內容準備中。"
+          />
+          <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+            {latestPosts.map((content) => (
+              <ContentCard key={content.id} content={content} />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section id="categories" className="bg-cream px-5 py-20 sm:px-8">
+        <div className="mx-auto max-w-7xl">
+          <SectionTitle
+            eyebrow="Categories"
+            title="文章分類"
+            description="從親子開箱、玩具收藏到美食旅行，把一家人的實測與日常分門別類整理。"
+          />
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {categoryEntries.map((category) => (
+              <a
+                id={category.id}
+                key={category.id}
+                href="#latest"
+                className="hand-drawn bg-white/80 p-6 shadow-soft transition hover:-translate-y-1 hover:bg-white"
+              >
+                <p className="text-sm font-semibold text-clay">
+                  {category.title}
+                </p>
+                <h3 className="mt-2 text-2xl font-bold text-coffee">
+                  {category.title}
+                </h3>
+                <p className="mt-3 text-base leading-7 text-cocoa/72">
+                  {category.description}
+                </p>
+              </a>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section id="about" className="px-5 py-20 sm:px-8">
+        <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[0.95fr_1.05fr]">
+          <div>
+            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-clay">
+              About WildDogHere
+            </p>
+            <h2 className="mt-3 text-3xl font-bold leading-tight text-coffee sm:text-4xl">
+              關於野狗軍團
+            </h2>
+            <p className="mt-5 text-base leading-8 text-cocoa/75">
+              WildDogHere／野狗軍團出沒中，是由野狗爸與野狗媽共同經營的家族生活部落格。我們把家人轉化成一組狗狗角色，用比較輕鬆、有生活感的方式，記錄親子開箱、玩具收藏、美食旅行與家庭日常。
+            </p>
+            <div className="mt-8">
+              <CTAButton href="#about" variant="secondary">
+                認識野狗軍團
+              </CTAButton>
+            </div>
+          </div>
+          <div className="grid gap-5 md:grid-cols-3">
+            <div className="rounded-[1.25rem] border border-cocoa/10 bg-cream p-5">
+              <h3 className="text-lg font-bold text-coffee">野狗爸與野狗媽</h3>
+              <p className="mt-3 text-sm leading-6 text-cocoa/70">
+                {coreNarrators.map((member) => member.name).join("、")}共同整理開箱、旅行、收藏與家庭生活觀察。
+              </p>
+            </div>
+            <div className="rounded-[1.25rem] border border-cocoa/10 bg-cream p-5">
+              <h3 className="text-lg font-bold text-coffee">小野狗們</h3>
+              <p className="mt-3 text-sm leading-6 text-cocoa/70">
+                {kidMembers.map((member) => member.name).join("、")}帶來最直接的親子互動與日常反應。
+              </p>
+            </div>
+            <div className="rounded-[1.25rem] border border-cocoa/10 bg-cream p-5">
+              <h3 className="text-lg font-bold text-coffee">阿公阿嬤後援隊</h3>
+              <p className="mt-3 text-sm leading-6 text-cocoa/70">
+                {supportMembers.map((member) => member.name).join("、")}讓家族故事多了長輩視角與生活厚度。
+              </p>
+            </div>
           </div>
         </div>
       </section>
@@ -169,20 +268,27 @@ export default function Home() {
               Collaboration
             </p>
             <h2 className="mt-4 text-3xl font-bold sm:text-4xl">
-              適合自然融入家庭生活的合作內容
+              如果你的品牌適合真實家庭生活場景，歡迎邀請野狗軍團一起出沒。
             </h2>
             <p className="mt-5 text-base leading-8 text-cream/80">
-              歡迎與家庭生活、親子體驗、玩具收藏、美食旅行和日常用品相關的品牌洽詢。野狗軍團適合自然融入生活場景的內容合作，重點是讓觀眾看見真實使用方式與家庭互動，而不是硬式廣告。
+              合作方向包含親子用品、玩具與收藏、美食體驗、旅遊住宿、生活用品、3C用品與品牌活動。
             </p>
             <ul className="mt-6 grid gap-3 text-sm leading-6 text-cream/78 sm:grid-cols-2">
-              {collaborationPoints.map((point) => (
-                <li key={point} className="rounded-[1rem] bg-cream/10 px-4 py-3">
-                  {point}
+              {collaborationTypes.map((type) => (
+                <li key={type} className="rounded-[1rem] bg-cream/10 px-4 py-3">
+                  {type}
                 </li>
               ))}
             </ul>
           </div>
-          <div className="flex items-center md:justify-end">
+          <div className="flex flex-col justify-center gap-4 md:items-end">
+            <p className="text-sm font-semibold text-cream/70">合作信箱</p>
+            <a
+              href="mailto:wilddoghere@gmail.com"
+              className="text-xl font-bold text-butter transition hover:text-cream"
+            >
+              wilddoghere@gmail.com
+            </a>
             <CTAButton href="mailto:wilddoghere@gmail.com" variant="secondary">
               寄信洽詢合作
             </CTAButton>
@@ -190,20 +296,20 @@ export default function Home() {
         </div>
       </section>
 
-      <section id="contact" className="bg-linen px-5 py-20 sm:px-8">
+      <section id="social" className="bg-linen px-5 py-20 sm:px-8">
         <div className="mx-auto max-w-6xl">
           <SectionTitle
-            eyebrow="Contact"
-            title="社群與聯絡方式"
-            description="社群資料集中維護在 data/socialLinks.ts。正式帳號確認後，直接替換連結與 handle 即可。"
+            eyebrow="Social Links"
+            title="社群連結"
+            description="最新文章、短影音與日常紀錄會依不同平台陸續更新。"
           />
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-5">
             {socialLinks.map((link) => (
               <a
-                key={link.label}
-                href={link.href}
-                target={link.href.startsWith("http") ? "_blank" : undefined}
-                rel={link.href.startsWith("http") ? "noreferrer" : undefined}
+                key={link.platform}
+                href={link.url}
+                target={link.url.startsWith("http") ? "_blank" : undefined}
+                rel={link.url.startsWith("http") ? "noreferrer" : undefined}
                 className="rounded-[1.25rem] border border-cocoa/10 bg-cream p-6 transition hover:-translate-y-1 hover:bg-white"
               >
                 <div className="flex items-start justify-between gap-3">
@@ -212,10 +318,9 @@ export default function Home() {
                     {link.status === "active" ? "Active" : "Pending"}
                   </span>
                 </div>
-                <p className="mt-2 text-sm font-semibold text-clay">
-                  {link.handle}
+                <p className="mt-3 text-sm font-semibold text-clay">
+                  {link.name}
                 </p>
-                <p className="mt-2 text-sm leading-6 text-cocoa/70">{link.note}</p>
               </a>
             ))}
           </div>
@@ -228,10 +333,10 @@ export default function Home() {
           <div className="flex flex-wrap gap-x-4 gap-y-2 text-cream/75">
             {socialLinks.map((link) => (
               <a
-                key={link.label}
-                href={link.href}
-                target={link.href.startsWith("http") ? "_blank" : undefined}
-                rel={link.href.startsWith("http") ? "noreferrer" : undefined}
+                key={link.platform}
+                href={link.url}
+                target={link.url.startsWith("http") ? "_blank" : undefined}
+                rel={link.url.startsWith("http") ? "noreferrer" : undefined}
                 className="transition hover:text-cream"
               >
                 {link.label}
@@ -239,7 +344,7 @@ export default function Home() {
             ))}
           </div>
           <p className="text-cream/65">
-            © {new Date().getFullYear()} WildDogHere. Built for family stories.
+            © {new Date().getFullYear()} WildDogHere. Family life blog.
           </p>
         </div>
       </footer>

@@ -47,7 +47,7 @@ export const characters: Character[] = [
   },
   {
     id: "big-kid",
-    name: "大寶",
+    name: "小野狗一號",
     dogType: "貴賓犬",
     roleTitle: "直覺派體驗員",
     keywords: ["真實反應", "玩具測試", "親子體驗"],
@@ -55,12 +55,12 @@ export const characters: Character[] = [
       "用孩子最直接的反應測試玩具、餐點與旅行地點是否真的好玩，是內容裡最自然的第一線回饋。",
     quote: "好不好玩，看我第一個反應就知道。",
     image: "/images/characters/big-kid.png",
-    imageAlt: "大寶貴賓犬角色圖",
+    imageAlt: "小野狗一號貴賓犬角色圖",
     isCoreNarrator: false
   },
   {
     id: "second-kid",
-    name: "二寶",
+    name: "小野狗二號",
     dogType: "吉娃娃",
     roleTitle: "氣氛擔當",
     keywords: ["日常笑點", "互動片刻", "家庭氣氛"],
@@ -68,7 +68,7 @@ export const characters: Character[] = [
       "把家庭日常裡的小插曲變成笑點，也讓每次出門、吃飯與拍攝更有自然的故事感。",
     quote: "我負責讓大家記得今天最可愛的瞬間。",
     image: "/images/characters/second-kid.png",
-    imageAlt: "二寶吉娃娃角色圖",
+    imageAlt: "小野狗二號吉娃娃角色圖",
     isCoreNarrator: false
   },
   {

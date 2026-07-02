@@ -1,6 +1,6 @@
 # WildDogHere / 野狗軍團出沒中
 
-Next.js + Tailwind CSS + TypeScript 製作的品牌官網 MVP。  
+Next.js + Tailwind CSS + TypeScript 製作的部落格型品牌網站 MVP。
 目前是靜態網站，沒有資料庫、CMS、登入、購物車或複雜表單。正式網站主網址為：
 
 ```text
@@ -35,8 +35,8 @@ pnpm dev
 
 ## 可維護資料
 
-- `data/characters.ts`：野狗軍團角色資料
-- `data/contents.ts`：代表作品卡片資料
+- `data/characters.ts`：野狗軍團家庭成員與敘事者資料
+- `data/contents.ts`：文章與精選內容資料
 - `data/socialLinks.ts`：社群與聯絡方式
 
 角色與作品資料都已保留正式圖片欄位。圖片檔案尚未放入 repo 前，網站會顯示輕量 placeholder。
@@ -50,7 +50,7 @@ pnpm dev
 
 ## Phase 2 文件
 
-- `docs/content-update-sop.md`：內容、角色、作品與社群連結更新流程
+- `docs/content-update-sop.md`：文章、角色與社群連結更新流程
 - `docs/image-strategy.md`：圖片命名、存放位置、尺寸與壓縮策略
 - `docs/blog-roadmap.md`：未來文章系統規劃，不導入 CMS 的前提下逐步擴充
 
@@ -73,8 +73,9 @@ pnpm dev
 5. 回到 Vercel Domains 頁面，等待狀態變成 Valid Configuration。
 6. 若正式網域不是 `www.wilddoghere.com`，請同步更新 `app/layout.tsx` 的 `metadataBase` 與 Open Graph `url`。
 
-## 上線前建議替換
+## 後續內容更新
 
-- 將 `data/socialLinks.ts` 的 placeholder 連結換成正式社群網址。
-- 將 `mailto:hello@wilddoghere.com` 換成正式合作信箱。
+- 更新文章：編輯 `data/contents.ts`。
+- 更新家庭成員與敘事者：編輯 `data/characters.ts`。
+- 更新社群與合作信箱：編輯 `data/socialLinks.ts`。
 - 若要加入真實照片，請依照 `docs/image-strategy.md` 放在 `public/images/`，再逐步替換目前的 placeholder 視覺。
