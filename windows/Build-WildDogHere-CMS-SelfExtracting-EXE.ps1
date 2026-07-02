@@ -9,6 +9,7 @@ $payloadZip = Join-Path $source "payload.zip"
 $installer = Join-Path $source "Install-WildDogHere-CMS.cmd"
 $sed = Join-Path $work "wilddoghere-cms.sed"
 $output = Join-Path $dist "WildDogHere-CMS-Windows.exe"
+$sourceForSed = "$source\"
 
 if (-not (Get-Command iexpress.exe -ErrorAction SilentlyContinue)) {
   throw "IExpress is not available on this Windows computer."
@@ -91,7 +92,7 @@ DisplayLicense=
 FinishMessage=WildDogHere CMS setup finished.
 TargetName=$output
 FriendlyName=WildDogHere CMS
-AppLaunched=Install-WildDogHere-CMS.cmd
+AppLaunched=%FILE1%
 PostInstallCmd=<None>
 AdminQuietInstCmd=
 UserQuietInstCmd=
@@ -100,7 +101,7 @@ SourceFiles=SourceFiles
 FILE0="payload.zip"
 FILE1="Install-WildDogHere-CMS.cmd"
 [SourceFiles]
-SourceFiles0=$source
+SourceFiles0=$sourceForSed
 [SourceFiles0]
 %FILE0%=
 %FILE1%=
@@ -110,15 +111,22 @@ DefaultDestDir=.
 
 Set-Content -Path $sed -Value $sedContent -Encoding ASCII
 
-Push-Location $source
-try {
-  iexpress.exe /N /Q $sed
-}
-finally {
-  Pop-Location
+$iexpress = Get-Command iexpress.exe -ErrorAction Stop
+$process = Start-Process -FilePath $iexpress.Source -ArgumentList @("/N", $sed) -Wait -PassThru -NoNewWindow
+
+if ($process.ExitCode -ne 0) {
+  Write-Host "IExpress exited with code $($process.ExitCode)."
 }
 
 if (-not (Test-Path $output)) {
+  Write-Host "Expected output:"
+  Write-Host "  $output"
+  Write-Host "SED file:"
+  Write-Host "  $sed"
+  Write-Host "Source folder contents:"
+  Get-ChildItem -Path $source -Force | ForEach-Object {
+    Write-Host ("  " + $_.FullName)
+  }
   throw "Self-extracting exe was not created."
 }
 
