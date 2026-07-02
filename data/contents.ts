@@ -43,20 +43,21 @@ export const contents: ContentItem[] = [
   },
   {
     id: "tomica-sushi-car-vol-2",
-    title: "收藏開箱｜Tomica 壽司車第二彈",
+    title:
+      "Tomica 壽司車第二彈（壽司トミカ 其之二）六款一次收藏，把日本壽司變成可愛 Tomica 小車！",
     slug: "tomica-sushi-car-vol-2",
     category: "玩具收藏",
     excerpt:
-      "以收藏視角介紹 Tomica 壽司車第二彈，整理造型亮點、入手理由與適合親子一起看的細節。",
+      "六款壽司 Tomica 一次收藏，把日本壽司變成可愛小車，從造型細節、收藏亮點到入手理由完整記錄。",
     coverImage: "/images/contents/tomica-sushi-car-vol-2.png",
     imageAlt: "Tomica 壽司車第二彈收藏開箱封面",
     narrator: "野狗爸",
     date: "2026-06-28",
-    tags: ["Tomica", "收藏", "車車玩具"],
-    platform: "Instagram / YouTube",
-    link: "#",
+    tags: ["Tomica", "壽司トミカ", "玩具收藏"],
+    platform: "Mobile01",
+    link: "https://www.mobile01.com/topicdetail.php?f=809&t=7274131",
     featured: true,
-    status: "coming-soon"
+    status: "published"
   },
   {
     id: "tomica-bath-ball",
@@ -162,20 +163,20 @@ export const contents: ContentItem[] = [
   },
   {
     id: "nagomi-ya-dining",
-    title: "美食體驗｜NAGOMI 雅",
+    title: "【美食開箱】台北新光三越A8｜NAGOMI雅｜這間吃到飽，重點根本不是吃飽",
     slug: "nagomi-ya-dining",
     category: "美食旅行",
     excerpt:
-      "以家庭聚餐和大人小孩都能吃得舒服為主軸，整理 NAGOMI 雅的餐點、環境與用餐節奏。",
+      "從空間、動線、餐點細節到日式吃到飽的節奏感，記錄 NAGOMI 雅不只是吃飽的一餐體驗。",
     coverImage: "/images/contents/nagomi-ya-dining.png",
     imageAlt: "NAGOMI 雅美食體驗封面",
     narrator: "野狗爸 × 野狗媽",
-    date: "2026-05-30",
-    tags: ["NAGOMI 雅", "家庭聚餐", "餐廳體驗"],
-    platform: "Instagram / Blog",
-    link: "#",
+    date: "2026-04-17",
+    tags: ["NAGOMI 雅", "新光三越A8", "美食開箱"],
+    platform: "Mobile01",
+    link: "https://www.mobile01.com/topicdetail.php?f=189&t=7252315",
     featured: false,
-    status: "coming-soon"
+    status: "published"
   },
   {
     id: "japan-family-travel-plan",
@@ -193,5 +194,75 @@ export const contents: ContentItem[] = [
     link: "#",
     featured: true,
     status: "draft"
+  },
+  {
+    id: "hipporizz-chargo-cavo-charging-kit",
+    title:
+      "【開箱評測】HIPPORIZZ河馬引力 CHARGO 快充系列＋CAVO 超高速傳輸線｜每天在台北三創附近跑咖的我，終於找到真正極簡輕便的充電組合推薦！",
+    slug: "hipporizz-chargo-cavo-charging-kit",
+    category: "3C與收納",
+    excerpt:
+      "從台北跑咖、日常外出到隨身充電需求，實測 CHARGO 快充系列與 CAVO 傳輸線的輕便度與收納感。",
+    coverImage: "/images/contents/hipporizz-chargo-cavo-charging-kit.png",
+    imageAlt: "HIPPORIZZ河馬引力 CHARGO 快充系列與 CAVO 傳輸線開箱縮圖",
+    narrator: "野狗爸",
+    date: "2026-06-15",
+    tags: ["HIPPORIZZ", "快充", "3C開箱"],
+    platform: "Mobile01",
+    link: "https://www.mobile01.com/topicdetail.php?f=738&t=7266426",
+    featured: false,
+    status: "published"
+  },
+  {
+    id: "ultraman-decker-70cm-unboxing",
+    title:
+      "【超人力霸王開箱】70公分真的有感！超人力霸王德卡(Ultraman Decker)巨大版，小孩直接暴動🔥",
+    slug: "ultraman-decker-70cm-unboxing",
+    category: "親子開箱",
+    excerpt:
+      "70 公分巨大版超人力霸王德卡帶回家後，小孩直接進入英雄劇場，從尺寸、質感到親子互動完整記錄。",
+    coverImage: "/images/contents/ultraman-decker-70cm-unboxing.png",
+    imageAlt: "超人力霸王德卡70公分巨大版開箱縮圖",
+    narrator: "野狗軍團",
+    date: "2026-04-12",
+    tags: ["超人力霸王", "Ultraman Decker", "親子開箱"],
+    platform: "Mobile01",
+    link: "https://www.mobile01.com/topicdetail.php?f=809&t=7250581",
+    featured: false,
+    status: "published"
+  },
+  {
+    id: "mitsubishi-xforce-test-drive",
+    title: "試駕 Mitsubishi XForce｜開著它一起看河濱公園的風景",
+    slug: "mitsubishi-xforce-test-drive",
+    category: "生活用品",
+    excerpt:
+      "從市區道路、河濱周邊到家庭日常用車視角，記錄 Mitsubishi XForce 的外型、內裝與短程試駕感受。",
+    coverImage: "/images/contents/mitsubishi-xforce-test-drive.png",
+    imageAlt: "Mitsubishi XForce 試駕文章縮圖",
+    narrator: "野狗爸",
+    date: "2026-03-08",
+    tags: ["Mitsubishi", "XForce", "試駕"],
+    platform: "Mobile01",
+    link: "https://www.mobile01.com/topicdetail.php?f=262&t=7232265",
+    featured: false,
+    status: "published"
+  },
+  {
+    id: "ultraman-convenience-heroes-lantern-festival",
+    title: "元宵前哨戰｜奧米加、初代、迪卡超商光之英雄大集合",
+    slug: "ultraman-convenience-heroes-lantern-festival",
+    category: "玩具收藏",
+    excerpt:
+      "從超商入手的光之英雄集合開始，整理奧米加、初代、迪卡在元宵前哨戰裡的收藏樂趣。",
+    coverImage: "/images/contents/ultraman-convenience-heroes-lantern-festival.png",
+    imageAlt: "奧米加初代迪卡超商光之英雄大集合縮圖",
+    narrator: "野狗爸",
+    date: "2026-03-01",
+    tags: ["超人力霸王", "玩具收藏", "超商收藏"],
+    platform: "Mobile01",
+    link: "https://www.mobile01.com/topicdetail.php?f=372&t=7230321",
+    featured: false,
+    status: "published"
   }
 ];
