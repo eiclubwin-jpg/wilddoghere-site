@@ -1,5 +1,7 @@
 import { CTAButton } from "@/components/CTAButton";
 import { ContentCard } from "@/components/ContentCard";
+import { FamilyDecorations } from "@/components/FamilyDecorations";
+import { Hero } from "@/components/Hero";
 import { SectionTitle } from "@/components/SectionTitle";
 import { characters } from "@/data/characters";
 import { contents } from "@/data/contents";
@@ -102,66 +104,21 @@ export default function Home() {
             ))}
           </nav>
           <div className="hidden sm:block lg:hidden">
-            <CTAButton href="#latest" variant="secondary">
+            <a
+              href="#latest-posts"
+              className="inline-flex min-h-11 items-center justify-center rounded-full border border-cocoa/25 bg-cream/70 px-6 py-3 text-sm font-semibold text-cocoa transition hover:bg-white"
+            >
               最新文章
-            </CTAButton>
+            </a>
           </div>
         </div>
       </header>
 
-      <section className="paper-texture relative">
-        <div className="mx-auto grid min-h-[calc(100vh-77px)] max-w-7xl items-center gap-12 px-5 py-16 sm:px-8 lg:grid-cols-[1.05fr_0.95fr] lg:py-20">
-          <div>
-            <p className="mb-5 w-fit rounded-full bg-white/75 px-4 py-2 text-sm font-semibold text-clay shadow-sm">
-              家族生活 x 親子開箱 x 3C開箱 x 玩具收藏 x 美食旅行
-            </p>
-            <h1 className="max-w-4xl text-5xl font-black leading-tight text-coffee sm:text-6xl lg:text-7xl">
-              WildDogHere
-              <span className="mt-3 block text-3xl text-cocoa sm:text-5xl">
-                野狗軍團出沒中
-              </span>
-            </h1>
-            <p className="mt-7 max-w-2xl text-lg leading-9 text-cocoa/80">
-              一個記錄家族日常、親子開箱、玩具收藏、美食旅行與生活實測的部落格。
-            </p>
-            <p className="mt-5 max-w-2xl text-base leading-8 text-cocoa/72">
-              我們用野狗爸與野狗媽的雙視角，分享一家人在日常生活裡的真實體驗。有時開箱、有時旅行，有時只是家裡又發生一件很好笑的小事。
-            </p>
-            <div className="mt-9 flex flex-col gap-3 sm:flex-row">
-              <CTAButton href="#latest">看最新文章</CTAButton>
-              <CTAButton href="#about" variant="secondary">
-                認識野狗軍團
-              </CTAButton>
-            </div>
-          </div>
+      <Hero />
 
-          <div className="hand-drawn relative mx-auto w-full max-w-xl bg-white/70 p-5 shadow-soft">
-            <div className="rounded-[1.5rem] bg-butter p-6">
-              <div className="grid gap-4">
-                {latestPosts.slice(0, 4).map((post, index) => (
-                  <a
-                    key={post.id}
-                    href="#latest"
-                    className={`rounded-[1.25rem] border border-cocoa/10 bg-cream px-5 py-4 shadow-sm ${
-                      index % 2 === 0 ? "rotate-[-0.5deg]" : "rotate-[0.5deg]"
-                    }`}
-                  >
-                    <p className="text-xs font-semibold text-clay">
-                      {post.category}
-                    </p>
-                    <p className="mt-1 text-base font-bold leading-6 text-coffee">
-                      {post.title}
-                    </p>
-                  </a>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section id="featured" className="bg-cream px-5 py-20 sm:px-8">
-        <div className="mx-auto max-w-7xl">
+      <section id="featured" className="relative bg-cream px-5 py-20 sm:px-8">
+        <FamilyDecorations characters={characters} variant="featured" />
+        <div className="relative mx-auto max-w-7xl">
           <SectionTitle
             eyebrow="Featured Posts"
             title="精選文章"
@@ -169,29 +126,31 @@ export default function Home() {
           />
           <div className="grid gap-6 md:grid-cols-3">
             {featuredPosts.map((content) => (
-              <ContentCard key={content.id} content={content} />
+              <ContentCard key={content.id} content={content} variant="feature" />
             ))}
           </div>
         </div>
       </section>
 
-      <section id="latest" className="bg-linen px-5 py-20 sm:px-8">
-        <div className="mx-auto max-w-7xl">
+      <section id="latest-posts" className="relative bg-linen px-5 py-20 sm:px-8">
+        <div className="relative mx-auto max-w-7xl">
+          <FamilyDecorations characters={characters} variant="latest" />
           <SectionTitle
             eyebrow="Latest Posts"
             title="最新文章"
             description="依文章日期排序。若連結尚未正式發布，卡片會顯示內容準備中。"
           />
-          <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+          <div className="grid gap-6 xl:grid-cols-2">
             {latestPosts.map((content) => (
-              <ContentCard key={content.id} content={content} />
+              <ContentCard key={content.id} content={content} variant="list" />
             ))}
           </div>
         </div>
       </section>
 
-      <section id="categories" className="bg-cream px-5 py-20 sm:px-8">
-        <div className="mx-auto max-w-7xl">
+      <section id="categories" className="relative bg-cream px-5 py-20 sm:px-8">
+        <FamilyDecorations characters={characters} variant="categories" />
+        <div className="relative mx-auto max-w-7xl">
           <SectionTitle
             eyebrow="Categories"
             title="文章分類"
@@ -202,9 +161,10 @@ export default function Home() {
               <a
                 id={category.id}
                 key={category.id}
-                href="#latest"
-                className="hand-drawn bg-white/80 p-6 shadow-soft transition hover:-translate-y-1 hover:bg-white"
+                href="#latest-posts"
+                className="hand-drawn relative min-h-44 overflow-hidden bg-white/80 p-6 shadow-soft transition hover:-translate-y-1 hover:bg-white"
               >
+                <span className="pointer-events-none absolute -right-5 -top-5 h-16 w-16 rounded-full bg-butter/70" />
                 <p className="text-sm font-semibold text-clay">
                   {category.title}
                 </p>
@@ -232,6 +192,10 @@ export default function Home() {
             <p className="mt-5 text-base leading-8 text-cocoa/75">
               WildDogHere／野狗軍團出沒中，是由野狗爸與野狗媽共同經營的家族生活部落格。我們把家人轉化成一組狗狗角色，用比較輕鬆、有生活感的方式，記錄親子開箱、玩具收藏、美食旅行與家庭日常。
             </p>
+            <p className="mt-4 text-base leading-8 text-cocoa/70">
+              這不是完美家庭展示，而是一支有時混亂、有時吵鬧，但總會一起出沒的野狗軍團。
+            </p>
+            <FamilyDecorations characters={characters} variant="about" />
             <div className="mt-8">
               <CTAButton href="#about" variant="secondary">
                 認識野狗軍團
@@ -262,8 +226,9 @@ export default function Home() {
       </section>
 
       <section id="collaboration" className="px-5 py-20 sm:px-8">
-        <div className="mx-auto grid max-w-6xl gap-8 rounded-[2rem] bg-cocoa p-8 text-cream shadow-soft md:grid-cols-[1.2fr_0.8fr] md:p-12">
-          <div>
+        <div className="relative mx-auto grid max-w-6xl overflow-hidden rounded-[2rem] bg-cocoa p-8 text-cream shadow-soft md:grid-cols-[1.2fr_0.8fr] md:p-12">
+          <FamilyDecorations characters={characters} variant="collaboration" />
+          <div className="relative">
             <p className="text-sm font-semibold uppercase tracking-[0.18em] text-butter">
               Collaboration
             </p>
@@ -281,7 +246,7 @@ export default function Home() {
               ))}
             </ul>
           </div>
-          <div className="flex flex-col justify-center gap-4 md:items-end">
+          <div className="relative flex flex-col justify-center gap-4 md:items-end">
             <p className="text-sm font-semibold text-cream/70">合作信箱</p>
             <a
               href="mailto:wilddoghere@gmail.com"
@@ -328,7 +293,10 @@ export default function Home() {
       </section>
 
       <footer className="bg-coffee px-5 py-8 text-cream sm:px-8">
-        <div className="mx-auto flex max-w-7xl flex-col gap-3 text-sm sm:flex-row sm:items-center sm:justify-between">
+        <div className="mx-auto grid max-w-7xl gap-5 text-sm lg:grid-cols-[1fr_auto_1fr] lg:items-center">
+          <div>
+            <FamilyDecorations characters={characters} variant="footer" />
+          </div>
           <p className="font-semibold">WildDogHere｜野狗軍團出沒中</p>
           <div className="flex flex-wrap gap-x-4 gap-y-2 text-cream/75">
             {socialLinks.map((link) => (

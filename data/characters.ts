@@ -54,7 +54,7 @@ export const characters: Character[] = [
     description:
       "用孩子最直接的反應測試玩具、餐點與旅行地點是否真的好玩，是內容裡最自然的第一線回饋。",
     quote: "好不好玩，看我第一個反應就知道。",
-    image: "/images/characters/big-kid.png",
+    image: "/images/characters/first-kid.png",
     imageAlt: "小野狗一號貴賓犬角色圖",
     isCoreNarrator: false
   },

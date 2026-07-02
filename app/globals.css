@@ -30,3 +30,24 @@ body {
     linear-gradient(90deg, rgba(74, 47, 35, 0.025) 1px, transparent 1px);
   background-size: 28px 28px;
 }
+
+.family-float {
+  animation: family-float 7s ease-in-out infinite;
+}
+
+@keyframes family-float {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+
+  50% {
+    translate: 0 -5px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .family-float {
+    animation: none;
+  }
+}
