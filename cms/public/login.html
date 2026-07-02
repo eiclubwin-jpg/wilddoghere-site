@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>WildDogHere CMS Login</title>
+    <link rel="stylesheet" href="/cms.css" />
+  </head>
+  <body class="login-page">
+    <main class="login-shell">
+      <section class="login-card">
+        <p class="eyebrow">Local CMS</p>
+        <h1>WildDogHere 文章管理</h1>
+        <p>請登入後再新增、編輯或上架文章。</p>
+
+        <form id="loginForm" class="login-form">
+          <label>
+            帳號
+            <input name="username" autocomplete="username" required />
+          </label>
+          <label>
+            密碼
+            <input
+              name="password"
+              type="password"
+              autocomplete="current-password"
+              required
+            />
+          </label>
+          <button type="submit">登入後台</button>
+          <p id="loginMessage" class="login-message"></p>
+        </form>
+      </section>
+    </main>
+
+    <script>
+      const loginForm = document.querySelector("#loginForm");
+      const loginMessage = document.querySelector("#loginMessage");
+
+      loginForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        loginMessage.textContent = "登入中...";
+
+        const data = new FormData(loginForm);
+        const response = await fetch("/api/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            username: data.get("username"),
+            password: data.get("password")
+          })
+        });
+        const result = await response.json();
+
+        if (!result.ok) {
+          loginMessage.textContent = result.error || "登入失敗，請確認帳號密碼。";
+          return;
+        }
+
+        window.location.href = "/";
+      });
+    </script>
+  </body>
+</html>

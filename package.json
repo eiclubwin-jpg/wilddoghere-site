@@ -6,6 +6,13 @@
     "dev": "WATCHPACK_POLLING=true next dev",
     "build": "next build",
     "start": "next start",
+    "cms": "node cms/server.js",
+    "cms:check": "node scripts/check-cms.js",
+    "cms:set-password": "node scripts/set-cms-password.js",
+    "package:windows": "node scripts/package-windows-cms.js",
+    "package:windows:check": "node scripts/check-windows-package.js",
+    "package:windows:notes": "node scripts/write-windows-release-notes.js",
+    "package:windows:handoff-check": "node scripts/check-windows-release-notes.js",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

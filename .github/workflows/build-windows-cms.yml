@@ -1,0 +1,50 @@
+name: Build Windows CMS Package
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-windows-cms:
+    name: Build Windows CMS exe
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Verify CMS and website
+        run: |
+          npm run cms:check
+          npm run typecheck
+          npm run build
+
+      - name: Build Windows transfer zip
+        run: |
+          npm run package:windows
+          npm run package:windows:check
+          npm run package:windows:notes
+          npm run package:windows:handoff-check
+
+      - name: Build self-extracting Windows exe
+        shell: powershell
+        run: |
+          powershell -ExecutionPolicy Bypass -File windows\Build-WildDogHere-CMS-SelfExtracting-EXE.ps1
+
+      - name: Upload Windows artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: wilddoghere-cms-windows
+          path: |
+            dist/wilddoghere-cms-windows.zip
+            dist/WINDOWS-HANDOFF.txt
+            dist/WildDogHere-CMS-Windows.exe
+          if-no-files-found: error

@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>WildDogHere CMS</title>
+    <link rel="stylesheet" href="/cms.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">Local CMS</p>
+        <h1>WildDogHere 文章管理</h1>
+      </div>
+      <div class="topbar-actions">
+        <button id="newPostButton" class="ghost">新增文章</button>
+        <button id="buildButton">檢查建置</button>
+        <button id="logoutButton" class="ghost">登出</button>
+      </div>
+    </header>
+
+    <main class="layout">
+      <aside class="sidebar">
+        <div class="search-row">
+          <input id="searchInput" type="search" placeholder="搜尋文章標題、分類、標籤" />
+        </div>
+        <div id="postList" class="post-list"></div>
+      </aside>
+
+      <section class="editor">
+        <form id="postForm" class="panel">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">Edit Article</p>
+              <h2>文章內容</h2>
+            </div>
+            <span id="saveState" class="save-state">尚未儲存</span>
+          </div>
+
+          <div class="grid two">
+            <label>
+              標題
+              <input name="title" required />
+            </label>
+            <label>
+              Slug
+              <input name="slug" required />
+            </label>
+          </div>
+
+          <label>
+            摘要
+            <textarea name="excerpt" rows="4"></textarea>
+          </label>
+
+          <div class="grid three">
+            <label>
+              分類
+              <select name="category"></select>
+            </label>
+            <label>
+              敘事者
+              <select name="narrator"></select>
+            </label>
+            <label>
+              日期
+              <input name="date" type="date" />
+            </label>
+          </div>
+
+          <div class="grid two">
+            <label>
+              平台
+              <input name="platform" placeholder="Mobile01" />
+            </label>
+            <label>
+              外部文章連結
+              <input name="link" placeholder="https://..." />
+            </label>
+          </div>
+
+          <label>
+            標籤
+            <input name="tags" placeholder="用逗號分隔，例如 Tomica, 玩具收藏, 親子開箱" />
+          </label>
+
+          <section class="wysiwyg-section">
+            <div class="editor-label">文章內文</div>
+            <div class="toolbar" aria-label="文章格式工具列">
+              <button type="button" data-command="formatBlock" data-value="h2">H2</button>
+              <button type="button" data-command="formatBlock" data-value="h3">H3</button>
+              <button type="button" data-command="formatBlock" data-value="p">段落</button>
+              <button type="button" data-command="bold">粗體</button>
+              <button type="button" data-command="italic">斜體</button>
+              <button type="button" data-command="insertUnorderedList">清單</button>
+              <button type="button" data-command="insertOrderedList">編號</button>
+              <button type="button" id="insertLinkButton">連結</button>
+              <button type="button" id="insertImageButton">插入圖片</button>
+              <input id="inlineImageInput" class="hidden-file" type="file" accept="image/png,image/jpeg,image/webp" />
+            </div>
+            <div
+              id="bodyEditor"
+              class="body-editor"
+              contenteditable="true"
+              aria-label="文章內文編輯區"
+            ></div>
+            <input name="bodyHtml" type="hidden" />
+          </section>
+
+          <div class="grid three">
+            <label>
+              狀態
+              <select name="status"></select>
+            </label>
+            <label class="checkbox-row">
+              <input name="featured" type="checkbox" />
+              <span>設為精選文章</span>
+            </label>
+            <label>
+              圖片說明
+              <input name="imageAlt" />
+            </label>
+          </div>
+
+          <div class="image-tools">
+            <div>
+              <label>
+                縮圖路徑
+                <input name="coverImage" placeholder="/images/contents/example.png" />
+              </label>
+              <label>
+                上傳新縮圖
+                <input id="imageInput" type="file" accept="image/png,image/jpeg,image/webp" />
+              </label>
+            </div>
+            <div class="image-preview">
+              <img id="imagePreview" alt="" />
+              <div id="imageFallback">文章縮圖預覽</div>
+            </div>
+          </div>
+
+          <div class="actions">
+            <button type="submit">儲存文章</button>
+            <button id="saveDraftButton" type="button" class="ghost">儲存草稿</button>
+            <button id="publishButton" type="button">預覽沒問題，上架文章</button>
+            <button id="deleteButton" type="button" class="danger">刪除文章</button>
+          </div>
+        </form>
+
+        <section class="panel">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">Preview</p>
+              <h2>上架前預覽</h2>
+            </div>
+          </div>
+          <article id="previewCard" class="preview-card"></article>
+        </section>
+
+        <section class="panel output-panel">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">Build Output</p>
+              <h2>檢查結果</h2>
+            </div>
+          </div>
+          <pre id="buildOutput">尚未執行。</pre>
+        </section>
+      </section>
+    </main>
+
+    <script src="/cms.js"></script>
+  </body>
+</html>

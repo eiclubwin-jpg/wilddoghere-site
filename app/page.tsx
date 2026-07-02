@@ -3,6 +3,7 @@ import { ContentCard } from "@/components/ContentCard";
 import { FamilyDecorations } from "@/components/FamilyDecorations";
 import { Hero } from "@/components/Hero";
 import { SectionTitle } from "@/components/SectionTitle";
+import { categoryEntries } from "@/data/categories";
 import { characters } from "@/data/characters";
 import { contents } from "@/data/contents";
 import { socialLinks } from "@/data/socialLinks";
@@ -10,49 +11,12 @@ import { socialLinks } from "@/data/socialLinks";
 const navItems = [
   { label: "首頁", href: "#" },
   { label: "關於野狗軍團", href: "#about" },
-  { label: "親子開箱", href: "#category-parenting" },
-  { label: "3C科技生活", href: "#category-tech" },
-  { label: "玩具收藏", href: "#category-toys" },
-  { label: "美食旅行", href: "#category-food-travel" },
-  { label: "生活用品", href: "#category-lifestyle" },
+  { label: "親子開箱", href: "/categories/parenting" },
+  { label: "3C科技生活", href: "/categories/tech" },
+  { label: "玩具收藏", href: "/categories/toys" },
+  { label: "美食旅行", href: "/categories/food-travel" },
+  { label: "生活用品", href: "/categories/lifestyle" },
   { label: "合作洽詢", href: "#collaboration" }
-];
-
-const categoryEntries: Array<{
-  id: string;
-  title: string;
-  description: string;
-}> = [
-  {
-    id: "category-parenting",
-    title: "親子開箱",
-    description: "孩子真實反應、親子共玩體驗與家庭日常裡的用品實測。"
-  },
-  {
-    id: "category-toys",
-    title: "玩具收藏",
-    description: "Tomica、收藏玩具與大人小孩都會想靠近的開箱紀錄。"
-  },
-  {
-    id: "category-food-travel",
-    title: "美食旅行",
-    description: "親子用餐、家族聚會、旅行規劃與適合一家人的出遊節奏。"
-  },
-  {
-    id: "category-lifestyle",
-    title: "生活用品",
-    description: "外出、收納、育兒與家庭生活裡真正用得到的小物分享。"
-  },
-  {
-    id: "category-tech",
-    title: "3C科技生活",
-    description: "拍攝設備、充電配件、收納包與科技用品的生活化實測。"
-  },
-  {
-    id: "category-daily",
-    title: "野狗日常",
-    description: "一家人每天出沒的片段、笑點、觀察與值得留下的小故事。"
-  }
 ];
 
 const collaborationTypes = [
@@ -72,6 +36,15 @@ const latestPosts = [...contents]
       new Date(next.date).getTime() - new Date(current.date).getTime()
   )
   .slice(0, 6);
+const postsByCategory = categoryEntries.map((category) => ({
+  ...category,
+  posts: contents
+    .filter((content) => content.category === category.contentCategory)
+    .sort(
+      (current, next) =>
+        new Date(next.date).getTime() - new Date(current.date).getTime()
+    )
+}));
 
 const coreNarrators = characters.filter((character) => character.isCoreNarrator);
 const kidMembers = characters.filter((character) =>
@@ -159,9 +132,9 @@ export default function Home() {
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {categoryEntries.map((category) => (
               <a
-                id={category.id}
-                key={category.id}
-                href="#latest-posts"
+                id={`category-${category.slug}`}
+                key={category.slug}
+                href={`/categories/${category.slug}`}
                 className="hand-drawn relative min-h-44 overflow-hidden bg-white/80 p-6 shadow-soft transition hover:-translate-y-1 hover:bg-white"
               >
                 <span className="pointer-events-none absolute -right-5 -top-5 h-16 w-16 rounded-full bg-butter/70" />
@@ -174,7 +147,89 @@ export default function Home() {
                 <p className="mt-3 text-base leading-7 text-cocoa/72">
                   {category.description}
                 </p>
+                <p className="mt-5 text-sm font-semibold text-clay">
+                  查看分類文章
+                </p>
               </a>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section id="category-posts" className="bg-linen px-5 py-20 sm:px-8">
+        <div className="mx-auto max-w-7xl">
+          <SectionTitle
+            eyebrow="Category Index"
+            title="分類文章目錄"
+            description="點選上方分類後，會直接跳到該分類目前整理好的文章清單。"
+          />
+          <div className="grid gap-6 lg:grid-cols-2">
+            {postsByCategory.map((category) => (
+              <section
+                id={`category-${category.slug}-posts`}
+                key={category.slug}
+                className="rounded-[1.5rem] border border-cocoa/10 bg-white/80 p-6 shadow-soft scroll-mt-28"
+              >
+                <div className="mb-5 flex items-end justify-between gap-4">
+                  <div>
+                    <p className="text-sm font-semibold text-clay">
+                      {category.title}
+                    </p>
+                    <h3 className="mt-1 text-2xl font-bold text-coffee">
+                      {category.posts.length} 篇文章
+                    </h3>
+                  </div>
+                  <a
+                    href={`/categories/${category.slug}`}
+                    className="text-sm font-semibold text-cocoa/55 transition hover:text-clay"
+                  >
+                    開啟目錄頁
+                  </a>
+                </div>
+                <div className="grid gap-4">
+                  {category.posts.length > 0 ? (
+                    category.posts.map((post) => {
+                      const isPublished =
+                        post.status === "published" && post.link !== "#";
+
+                      return (
+                        <a
+                          key={post.id}
+                          href={isPublished ? post.link : "#category-posts"}
+                          target={
+                            isPublished && post.link.startsWith("http")
+                              ? "_blank"
+                              : undefined
+                          }
+                          rel={
+                            isPublished && post.link.startsWith("http")
+                              ? "noreferrer"
+                              : undefined
+                          }
+                          className="rounded-[1rem] border border-cocoa/10 bg-cream/80 p-4 transition hover:bg-white"
+                        >
+                          <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-cocoa/55">
+                            <span>{post.date}</span>
+                            <span>・</span>
+                            <span>{post.platform}</span>
+                            <span>・</span>
+                            <span>
+                              {isPublished ? "閱讀文章" : "內容準備中"}
+                            </span>
+                          </div>
+                          <p className="mt-2 text-base font-bold leading-7 text-coffee">
+                            {post.title}
+                          </p>
+                        </a>
+                      );
+                    })
+                  ) : (
+                    <p className="rounded-[1rem] bg-cream/80 p-4 text-sm leading-6 text-cocoa/60">
+                      這個分類還在整理中。
+                    </p>
+                  )}
+                </div>
+              </section>
             ))}
           </div>
         </div>
