@@ -1,4 +1,3 @@
-const { spawnSync } = require("child_process");
 const fs = require("fs");
 const path = require("path");
 
@@ -9,17 +8,50 @@ if (!fs.existsSync(archivePath)) {
   throw new Error("Missing dist/wilddoghere-cms-windows.zip. Run npm run package:windows first.");
 }
 
-const result = spawnSync("unzip", ["-l", archivePath], {
-  cwd: root,
-  encoding: "utf8",
-  stdio: "pipe"
-});
+function listZipEntries(filePath) {
+  const buffer = fs.readFileSync(filePath);
+  const eocdSignature = 0x06054b50;
+  const centralDirectorySignature = 0x02014b50;
+  let eocdOffset = -1;
 
-if (result.status !== 0) {
-  throw new Error(result.stderr || "Could not inspect Windows package.");
+  for (let index = buffer.length - 22; index >= 0; index -= 1) {
+    if (buffer.readUInt32LE(index) === eocdSignature) {
+      eocdOffset = index;
+      break;
+    }
+  }
+
+  if (eocdOffset === -1) {
+    throw new Error("Could not read ZIP central directory.");
+  }
+
+  const entryCount = buffer.readUInt16LE(eocdOffset + 10);
+  let offset = buffer.readUInt32LE(eocdOffset + 16);
+  const entries = [];
+
+  for (let entryIndex = 0; entryIndex < entryCount; entryIndex += 1) {
+    if (buffer.readUInt32LE(offset) !== centralDirectorySignature) {
+      throw new Error("Invalid ZIP central directory entry.");
+    }
+
+    const fileNameLength = buffer.readUInt16LE(offset + 28);
+    const extraFieldLength = buffer.readUInt16LE(offset + 30);
+    const fileCommentLength = buffer.readUInt16LE(offset + 32);
+    const fileNameStart = offset + 46;
+    const fileNameEnd = fileNameStart + fileNameLength;
+    const fileName = buffer
+      .subarray(fileNameStart, fileNameEnd)
+      .toString("utf8")
+      .replace(/\\/g, "/");
+
+    entries.push(fileName);
+    offset = fileNameEnd + extraFieldLength + fileCommentLength;
+  }
+
+  return entries;
 }
 
-const listing = result.stdout;
+const entries = listZipEntries(archivePath);
 const required = [
   "WINDOWS-README-FIRST.txt",
   "WINDOWS-SETUP.cmd",
@@ -54,13 +86,13 @@ const forbidden = [
 ];
 
 for (const file of required) {
-  if (!listing.includes(file)) {
+  if (!entries.some((entry) => entry === file || entry.endsWith(`/${file}`))) {
     throw new Error(`Windows package is missing ${file}.`);
   }
 }
 
 for (const file of forbidden) {
-  if (listing.includes(file)) {
+  if (entries.some((entry) => entry.includes(file))) {
     throw new Error(`Windows package should not include ${file}.`);
   }
 }
