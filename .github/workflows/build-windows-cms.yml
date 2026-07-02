@@ -21,18 +21,26 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Verify CMS and website
-        run: |
-          npm run cms:check
-          npm run typecheck
-          npm run build
+      - name: Verify CMS data
+        run: npm run cms:check
+
+      - name: Type check
+        run: npm run typecheck
+
+      - name: Build website
+        run: npm run build
 
       - name: Build Windows transfer zip
-        run: |
-          npm run package:windows
-          npm run package:windows:check
-          npm run package:windows:notes
-          npm run package:windows:handoff-check
+        run: npm run package:windows
+
+      - name: Check Windows transfer zip
+        run: npm run package:windows:check
+
+      - name: Write Windows handoff notes
+        run: npm run package:windows:notes
+
+      - name: Check Windows handoff notes
+        run: npm run package:windows:handoff-check
 
       - name: Build self-extracting Windows exe
         shell: powershell
