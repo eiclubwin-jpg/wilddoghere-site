@@ -128,6 +128,30 @@ CMS 上傳的縮圖與內文圖片會放在：
 public/images/contents/
 ```
 
+## 自動浮水印
+
+CMS 上傳封面圖或文章內文圖片時，預設會自動加上：
+
+```text
+Logo + WildDogHere｜野狗軍團出沒中
+```
+
+浮水印會放在圖片右下角，並自動輸出成網站用 JPG。若某張圖片不想加浮水印，可在 CMS 的圖片區塊取消勾選「上傳圖片時自動加 Logo + 文字浮水印」。
+
+浮水印 Logo 檔案：
+
+```text
+public/images/brand/wilddoghere-watermark.png
+```
+
+網站橫幅 Logo 備用檔案：
+
+```text
+public/images/brand/wilddoghere-logo-wide.png
+```
+
+未來要更換浮水印，只要用新的透明背景 PNG 覆蓋 `public/images/brand/wilddoghere-watermark.png`，不用改程式。
+
 ## 上架前檢查
 
 CMS 裡的「檢查建置」會執行：

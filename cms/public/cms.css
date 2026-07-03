@@ -330,6 +330,22 @@ form {
   width: auto;
 }
 
+.watermark-row {
+  align-items: center;
+  border: 1px solid rgba(74, 47, 35, 0.12);
+  border-radius: 16px;
+  background: #fff8ea;
+  padding: 12px 14px;
+}
+
+.help-text {
+  margin: -4px 0 0;
+  color: rgba(74, 47, 35, 0.58);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.6;
+}
+
 .image-tools {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(220px, 320px);

@@ -70,6 +70,8 @@ const required = [
   "windows/Build-WildDogHere-CMS-EXE.ps1",
   "windows/Build-WildDogHere-CMS-SelfExtracting-EXE.ps1",
   "windows/Build-WildDogHere-CMS-SelfExtracting-EXE.cmd",
+  "public/images/brand/wilddoghere-watermark.png",
+  "public/images/brand/wilddoghere-logo-wide.png",
   "scripts/set-cms-password.js",
   "scripts/check-cms.js",
   "package.json",

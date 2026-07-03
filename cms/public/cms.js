@@ -6,7 +6,8 @@ const state = {
     statuses: []
   },
   currentId: null,
-  imageUpload: null
+  imageUpload: null,
+  watermarkLogo: null
 };
 
 const form = document.querySelector("#postForm");
@@ -20,6 +21,114 @@ const saveState = document.querySelector("#saveState");
 const buildOutput = document.querySelector("#buildOutput");
 const bodyEditor = document.querySelector("#bodyEditor");
 const inlineImageInput = document.querySelector("#inlineImageInput");
+const watermarkEnabled = document.querySelector("#watermarkEnabled");
+
+function loadImage(src) {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => resolve(image);
+    image.onerror = reject;
+    image.src = src;
+  });
+}
+
+async function getWatermarkLogo() {
+  if (state.watermarkLogo) {
+    return state.watermarkLogo;
+  }
+
+  try {
+    state.watermarkLogo = await loadImage("/images/brand/wilddoghere-watermark.png");
+  } catch {
+    state.watermarkLogo = null;
+  }
+
+  return state.watermarkLogo;
+}
+
+function roundedRect(context, x, y, width, height, radius) {
+  const safeRadius = Math.min(radius, width / 2, height / 2);
+  context.beginPath();
+  context.moveTo(x + safeRadius, y);
+  context.arcTo(x + width, y, x + width, y + height, safeRadius);
+  context.arcTo(x + width, y + height, x, y + height, safeRadius);
+  context.arcTo(x, y + height, x, y, safeRadius);
+  context.arcTo(x, y, x + width, y, safeRadius);
+  context.closePath();
+}
+
+async function prepareImageUpload(file, preferredName) {
+  const originalDataUrl = await new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+
+  if (!watermarkEnabled.checked) {
+    return {
+      filename: preferredName || file.name,
+      dataUrl: originalDataUrl,
+      previewUrl: originalDataUrl
+    };
+  }
+
+  const image = await loadImage(originalDataUrl);
+  const maxSize = 1800;
+  const scale = Math.min(1, maxSize / Math.max(image.naturalWidth, image.naturalHeight));
+  const width = Math.max(1, Math.round(image.naturalWidth * scale));
+  const height = Math.max(1, Math.round(image.naturalHeight * scale));
+  const canvas = document.createElement("canvas");
+  const context = canvas.getContext("2d");
+
+  canvas.width = width;
+  canvas.height = height;
+  context.drawImage(image, 0, 0, width, height);
+
+  const logo = await getWatermarkLogo();
+  const edge = Math.max(16, Math.round(width * 0.018));
+  const badgeWidth = Math.min(Math.max(320, Math.round(width * 0.38)), Math.round(width - edge * 2));
+  const badgeHeight = Math.max(74, Math.round(badgeWidth * 0.2));
+  const x = width - badgeWidth - edge;
+  const y = height - badgeHeight - edge;
+  const radius = Math.round(badgeHeight * 0.22);
+
+  context.save();
+  roundedRect(context, x, y, badgeWidth, badgeHeight, radius);
+  context.fillStyle = "rgba(47, 33, 27, 0.58)";
+  context.fill();
+
+  const logoSize = Math.round(badgeHeight * 0.72);
+  const logoX = x + Math.round(edge * 0.75);
+  const logoY = y + Math.round((badgeHeight - logoSize) / 2);
+
+  if (logo) {
+    context.globalAlpha = 0.78;
+    context.drawImage(logo, logoX, logoY, logoSize, logoSize);
+    context.globalAlpha = 1;
+  }
+
+  const textX = logo ? logoX + logoSize + Math.round(edge * 0.55) : x + edge;
+  const brandSize = Math.max(18, Math.round(badgeHeight * 0.26));
+  const subSize = Math.max(13, Math.round(badgeHeight * 0.18));
+  context.fillStyle = "rgba(255, 248, 234, 0.95)";
+  context.font = `800 ${brandSize}px "Noto Sans TC", "Microsoft JhengHei", sans-serif`;
+  context.fillText("WildDogHere", textX, y + Math.round(badgeHeight * 0.43));
+  context.font = `700 ${subSize}px "Noto Sans TC", "Microsoft JhengHei", sans-serif`;
+  context.fillText("野狗軍團出沒中", textX, y + Math.round(badgeHeight * 0.69));
+  context.restore();
+
+  const dataUrl = canvas.toDataURL("image/jpeg", 0.88);
+  const baseName = String(preferredName || file.name || "wilddoghere-image")
+    .replace(/\.(png|jpg|jpeg|webp)$/i, "")
+    .replace(/\s+/g, "-");
+
+  return {
+    filename: `${baseName}.jpg`,
+    dataUrl,
+    previewUrl: dataUrl
+  };
+}
 
 async function readJson(response) {
   if (response.status === 401) {
@@ -256,16 +365,18 @@ document.querySelector("#insertImageButton").addEventListener("click", () => {
 inlineImageInput.addEventListener("change", () => {
   const file = inlineImageInput.files[0];
   if (!file) return;
-  const reader = new FileReader();
-  reader.onload = async () => {
+  const slug = form.elements.slug.value || slugify(form.elements.title.value) || "article";
+  saveState.textContent = "圖片處理中...";
+
+  prepareImageUpload(file, `${slug}-${Date.now()}`).then(async (upload) => {
     const slug = form.elements.slug.value || slugify(form.elements.title.value);
     const response = await fetch("/api/upload-image", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         image: {
-          filename: `${slug}-${Date.now()}`,
-          dataUrl: reader.result
+          filename: upload.filename,
+          dataUrl: upload.dataUrl
         }
       })
     });
@@ -280,8 +391,11 @@ inlineImageInput.addEventListener("change", () => {
     form.elements.bodyHtml.value = bodyEditor.innerHTML.trim();
     updatePreview();
     inlineImageInput.value = "";
-  };
-  reader.readAsDataURL(file);
+    saveState.textContent = "尚未儲存";
+  }).catch((error) => {
+    alert(error.message || "圖片處理失敗");
+    saveState.textContent = "圖片處理失敗";
+  });
 });
 
 postList.addEventListener("click", (event) => {
@@ -304,25 +418,25 @@ document.querySelector("#newPostButton").addEventListener("click", () => {
 imageInput.addEventListener("change", () => {
   const file = imageInput.files[0];
   if (!file) return;
-  const reader = new FileReader();
-  reader.onload = () => {
+
+  const slug = form.elements.slug.value || slugify(form.elements.title.value) || "article-cover";
+  saveState.textContent = "圖片處理中...";
+
+  prepareImageUpload(file, slug).then((upload) => {
     state.imageUpload = {
-      filename: file.name,
-      dataUrl: reader.result
+      filename: upload.filename,
+      dataUrl: upload.dataUrl
     };
-    const slug = form.elements.slug.value || slugify(form.elements.title.value);
-    const extension = file.type.includes("webp")
-      ? "webp"
-      : file.type.includes("jpeg")
-        ? "jpg"
-        : "png";
-    form.elements.coverImage.value = `/images/contents/${slug || "article-cover"}.${extension}`;
-    imagePreview.src = reader.result;
+    form.elements.coverImage.value = `/images/contents/${upload.filename}`;
+    imagePreview.src = upload.previewUrl;
     imagePreview.style.display = "block";
     imageFallback.style.display = "none";
     updatePreview();
-  };
-  reader.readAsDataURL(file);
+    saveState.textContent = "尚未儲存";
+  }).catch((error) => {
+    alert(error.message || "圖片處理失敗");
+    saveState.textContent = "圖片處理失敗";
+  });
 });
 
 async function savePost(statusOverride) {
