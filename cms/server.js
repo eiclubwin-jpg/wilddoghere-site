@@ -131,7 +131,10 @@ function sendFile(response, filePath, contentType) {
       return;
     }
 
-    response.writeHead(200, { "Content-Type": contentType });
+    response.writeHead(200, {
+      "Content-Type": contentType,
+      "Cache-Control": "no-store, max-age=0"
+    });
     response.end(data);
   });
 }
