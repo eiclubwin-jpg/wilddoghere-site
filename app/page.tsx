@@ -189,23 +189,21 @@ export default function Home() {
                 <div className="grid gap-4">
                   {category.posts.length > 0 ? (
                     category.posts.map((post) => {
-                      const isPublished =
-                        post.status === "published" && post.link !== "#";
+                      const normalizedLink = post.link.replace(/^#(?=https?:\/\/)/, "");
+                      const hasCmsBody = Boolean(post.bodyHtml?.trim());
+                      const postUrl =
+                        hasCmsBody || !normalizedLink || normalizedLink === "#"
+                          ? `/posts/${post.slug}`
+                          : normalizedLink;
+                      const isPublished = post.status === "published";
+                      const isExternalLink = postUrl.startsWith("http");
 
                       return (
                         <a
                           key={post.id}
-                          href={isPublished ? post.link : "#category-posts"}
-                          target={
-                            isPublished && post.link.startsWith("http")
-                              ? "_blank"
-                              : undefined
-                          }
-                          rel={
-                            isPublished && post.link.startsWith("http")
-                              ? "noreferrer"
-                              : undefined
-                          }
+                          href={isPublished ? postUrl : "#category-posts"}
+                          target={isPublished && isExternalLink ? "_blank" : undefined}
+                          rel={isPublished && isExternalLink ? "noreferrer" : undefined}
                           className="rounded-[1rem] border border-cocoa/10 bg-cream/80 p-4 transition hover:bg-white"
                         >
                           <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-cocoa/55">

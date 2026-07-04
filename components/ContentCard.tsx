@@ -8,7 +8,14 @@ type ContentCardProps = {
 };
 
 export function ContentCard({ content, variant = "feature" }: ContentCardProps) {
-  const isPublished = content.status === "published" && content.link !== "#";
+  const normalizedLink = content.link.replace(/^#(?=https?:\/\/)/, "");
+  const hasCmsBody = Boolean(content.bodyHtml?.trim());
+  const contentUrl =
+    hasCmsBody || !normalizedLink || normalizedLink === "#"
+      ? `/posts/${content.slug}`
+      : normalizedLink;
+  const isPublished = content.status === "published";
+  const isExternalLink = contentUrl.startsWith("http");
   const dateLabel = new Intl.DateTimeFormat("zh-TW", {
     year: "numeric",
     month: "2-digit",
@@ -81,9 +88,9 @@ export function ContentCard({ content, variant = "feature" }: ContentCardProps) 
           </p>
           {isPublished ? (
             <a
-              href={content.link}
-              target={content.link.startsWith("http") ? "_blank" : undefined}
-              rel={content.link.startsWith("http") ? "noreferrer" : undefined}
+              href={contentUrl}
+              target={isExternalLink ? "_blank" : undefined}
+              rel={isExternalLink ? "noreferrer" : undefined}
               className="text-sm font-semibold text-clay transition hover:text-cocoa"
             >
               閱讀更多

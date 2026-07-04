@@ -38,6 +38,9 @@ export default async function PostPage({ params }: PostPageProps) {
     notFound();
   }
 
+  const sourceLink = post.link.replace(/^#(?=https?:\/\/)/, "");
+  const hasSourceLink = sourceLink.startsWith("http");
+
   return (
     <main className="min-h-screen bg-cream px-5 py-16 sm:px-8">
       <article className="mx-auto max-w-4xl">
@@ -63,6 +66,16 @@ export default async function PostPage({ params }: PostPageProps) {
           <p className="mt-3 text-sm font-semibold text-cocoa/55">
             敘事者：{post.narrator}
           </p>
+          {hasSourceLink ? (
+            <a
+              href={sourceLink}
+              target="_blank"
+              rel="noreferrer"
+              className="mt-5 inline-flex rounded-full bg-coffee px-5 py-3 text-sm font-bold text-white transition hover:bg-clay"
+            >
+              查看外部原文
+            </a>
+          ) : null}
         </header>
 
         <div className="mt-8 overflow-hidden rounded-[1.5rem] bg-linen shadow-soft">

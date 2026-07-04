@@ -272,9 +272,12 @@ function updatePreview() {
   const tags = post.tags
     .map((tag) => `<span class="tag">${tag}</span>`)
     .join("");
+  const hasBody = Boolean(post.bodyHtml.trim());
   const action =
-    post.status === "published" && post.link && post.link !== "#"
-      ? "閱讀更多"
+    post.status === "published"
+      ? hasBody
+        ? "閱讀站內文章"
+        : "閱讀外部原文"
       : "內容準備中";
   const body = post.bodyHtml
     ? `<div class="preview-content">${post.bodyHtml}</div>`
