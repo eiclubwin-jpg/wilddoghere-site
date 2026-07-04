@@ -74,6 +74,13 @@ label {
   font-weight: 800;
 }
 
+.field-hint {
+  color: rgba(74, 47, 35, 0.55);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.6;
+}
+
 .topbar {
   position: sticky;
   top: 0;

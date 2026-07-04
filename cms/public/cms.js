@@ -140,12 +140,13 @@ async function readJson(response) {
 }
 
 function slugify(value) {
-  return String(value || "")
+  const slug = String(value || "")
     .trim()
     .toLowerCase()
     .replace(/https?:\/\//g, "")
-    .replace(/[^a-z0-9\u4e00-\u9fff]+/g, "-")
+    .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
+  return slug || `post-${Date.now()}`;
 }
 
 function getFormData() {

@@ -164,7 +164,7 @@ function slugify(input) {
     .trim()
     .toLowerCase()
     .replace(/https?:\/\//g, "")
-    .replace(/[^a-z0-9\u4e00-\u9fff]+/g, "-")
+    .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
   return slug || fallback;
 }
