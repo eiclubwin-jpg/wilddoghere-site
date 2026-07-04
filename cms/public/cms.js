@@ -149,15 +149,25 @@ function slugify(value) {
   return slug || `post-${Date.now()}`;
 }
 
+function extractFirstBodyImageSrc(html) {
+  const template = document.createElement("template");
+  template.innerHTML = html || "";
+  const image = template.content.querySelector("img[src]");
+  return image ? image.getAttribute("src") || "" : "";
+}
+
 function getFormData() {
   const data = new FormData(form);
+  const bodyHtml = bodyEditor.innerHTML.trim();
+  const coverImage = String(data.get("coverImage") || "").trim() || extractFirstBodyImageSrc(bodyHtml);
+
   return {
     id: data.get("slug"),
     title: data.get("title"),
     slug: data.get("slug"),
     category: data.get("category"),
     excerpt: data.get("excerpt"),
-    coverImage: data.get("coverImage"),
+    coverImage,
     imageAlt: data.get("imageAlt"),
     narrator: data.get("narrator"),
     date: data.get("date"),
@@ -165,7 +175,7 @@ function getFormData() {
       .split(",")
       .map((tag) => tag.trim())
       .filter(Boolean),
-    bodyHtml: bodyEditor.innerHTML.trim(),
+    bodyHtml,
     platform: data.get("platform"),
     link: data.get("link"),
     featured: data.get("featured") === "on",

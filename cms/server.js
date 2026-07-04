@@ -169,6 +169,21 @@ function slugify(input) {
   return slug || fallback;
 }
 
+function extractFirstImageSrc(html) {
+  const match = String(html || "").match(/<img\b[^>]*\bsrc=["']([^"']+)["']/i);
+  return match ? match[1].trim() : "";
+}
+
+function localImageExists(imagePath) {
+  if (!imagePath || !imagePath.startsWith("/images/")) {
+    return Boolean(imagePath);
+  }
+
+  const normalizedPath = path.normalize(imagePath).replace(/^(\.\.(\/|\\|$))+/, "");
+  const absolutePath = path.join(rootDir, "public", normalizedPath);
+  return absolutePath.startsWith(path.join(rootDir, "public")) && fs.existsSync(absolutePath);
+}
+
 function normalizePost(post) {
   const slug = slugify(post.slug || post.title);
   const category = categories.includes(post.category) ? post.category : "野狗日常";
@@ -176,6 +191,13 @@ function normalizePost(post) {
   const status = statuses.includes(post.status) ? post.status : "draft";
   const rawLink = String(post.link || "").trim();
   const link = rawLink.replace(/^#(?=https?:\/\/)/, "") || `/posts/${slug}`;
+  const bodyHtml = String(post.bodyHtml || "").trim();
+  const rawCoverImage = String(post.coverImage || "").trim();
+  const firstBodyImage = extractFirstImageSrc(bodyHtml);
+  const coverImage =
+    rawCoverImage && localImageExists(rawCoverImage)
+      ? rawCoverImage
+      : firstBodyImage || `/images/contents/${slug}.png`;
 
   return {
     id: slug,
@@ -183,7 +205,7 @@ function normalizePost(post) {
     slug,
     category,
     excerpt: String(post.excerpt || "").trim(),
-    coverImage: String(post.coverImage || `/images/contents/${slug}.png`).trim(),
+    coverImage,
     imageAlt: String(post.imageAlt || `${post.title || "文章"}縮圖`).trim(),
     narrator,
     date: String(post.date || new Date().toISOString().slice(0, 10)),
@@ -193,7 +215,7 @@ function normalizePost(post) {
           .split(",")
           .map((tag) => tag.trim())
           .filter(Boolean),
-    bodyHtml: String(post.bodyHtml || "").trim(),
+    bodyHtml,
     platform: String(post.platform || "Mobile01").trim(),
     link,
     featured: Boolean(post.featured),
