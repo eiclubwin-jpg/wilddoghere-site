@@ -174,6 +174,8 @@ function normalizePost(post) {
   const category = categories.includes(post.category) ? post.category : "野狗日常";
   const narrator = narrators.includes(post.narrator) ? post.narrator : "野狗軍團";
   const status = statuses.includes(post.status) ? post.status : "draft";
+  const rawLink = String(post.link || "").trim();
+  const link = rawLink.replace(/^#(?=https?:\/\/)/, "") || `/posts/${slug}`;
 
   return {
     id: slug,
@@ -193,7 +195,7 @@ function normalizePost(post) {
           .filter(Boolean),
     bodyHtml: String(post.bodyHtml || "").trim(),
     platform: String(post.platform || "Mobile01").trim(),
-    link: String(post.link || "").trim() || `/posts/${slug}`,
+    link,
     featured: Boolean(post.featured),
     status
   };
@@ -235,6 +237,109 @@ function runBuild(response) {
       output
     });
   });
+}
+
+function runCommand(command, args, timeoutMs = 180000) {
+  return new Promise((resolve) => {
+    const child = spawn(command, args, {
+      cwd: rootDir,
+      env: {
+        ...process.env,
+        GIT_TERMINAL_PROMPT: "0"
+      },
+      shell: true
+    });
+    let output = "";
+    let settled = false;
+
+    const timeout = setTimeout(() => {
+      if (settled) return;
+      settled = true;
+      child.kill();
+      resolve({
+        code: 124,
+        output: `${output}\nCommand timed out. 請確認 GitHub 登入狀態後再試一次。\n`
+      });
+    }, timeoutMs);
+
+    child.stdout.on("data", (data) => {
+      output += data.toString();
+    });
+    child.stderr.on("data", (data) => {
+      output += data.toString();
+    });
+    child.on("error", (error) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timeout);
+      resolve({ code: 1, output: `${output}\n${error.message}\n` });
+    });
+    child.on("close", (code) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timeout);
+      resolve({ code, output });
+    });
+  });
+}
+
+async function runPublishSite(response, postTitle) {
+  const deployPaths = [
+    "data/contents.json",
+    "public/images/contents",
+    "public/images/brand"
+  ];
+  let output = "";
+
+  async function step(label, command, args) {
+    output += `\n$ ${label}\n`;
+    const result = await runCommand(command, args);
+    output += result.output || "";
+
+    if (result.code !== 0) {
+      throw new Error(`${label} failed.`);
+    }
+
+    return result;
+  }
+
+  try {
+    await step("npm run cms:check", "npm", ["run", "cms:check"]);
+    await step("npm run build", "npm", ["run", "build"]);
+    await step("git add content files", "git", ["add", "--", ...deployPaths]);
+
+    const status = await runCommand("git", ["status", "--porcelain", "--", ...deployPaths]);
+    output += "\n$ git status content files\n";
+    output += status.output || "No content changes.\n";
+
+    if (!status.output.trim()) {
+      sendJson(response, 200, {
+        ok: true,
+        skipped: true,
+        output: `${output}\n沒有新的文章或圖片變更需要推送。`
+      });
+      return;
+    }
+
+    const safeTitle = String(postTitle || "content").trim().slice(0, 80);
+    await step("git commit", "git", [
+      "commit",
+      "-m",
+      `Publish CMS article: ${safeTitle}`
+    ]);
+    await step("git push origin main", "git", ["push", "origin", "main"]);
+
+    sendJson(response, 200, {
+      ok: true,
+      output: `${output}\n已推送到 GitHub。Vercel 會開始部署正式網站，通常需要 1-3 分鐘。`
+    });
+  } catch (error) {
+    sendJson(response, 500, {
+      ok: false,
+      error: error instanceof Error ? error.message : String(error),
+      output
+    });
+  }
 }
 
 const server = http.createServer(async (request, response) => {
@@ -356,6 +461,13 @@ const server = http.createServer(async (request, response) => {
     if (request.method === "POST" && url.pathname === "/api/build") {
       if (!requireAuth(request, response)) return;
       runBuild(response);
+      return;
+    }
+
+    if (request.method === "POST" && url.pathname === "/api/publish-site") {
+      if (!requireAuth(request, response)) return;
+      const body = await readJsonBody(request);
+      runPublishSite(response, body.title || "CMS update");
       return;
     }
 

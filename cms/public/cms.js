@@ -465,7 +465,7 @@ async function savePost(statusOverride) {
   if (!result.ok) {
     saveState.textContent = "儲存失敗";
     alert(result.error || "儲存失敗");
-    return;
+    return null;
   }
 
   state.imageUpload = null;
@@ -475,6 +475,35 @@ async function savePost(statusOverride) {
   renderList();
   saveState.textContent =
     result.post.status === "published" ? "已上架" : "已儲存";
+  return result.post;
+}
+
+async function publishSite(post) {
+  buildOutput.textContent = [
+    "正在更新正式網站...",
+    "1. 檢查 CMS 資料",
+    "2. 建置網站",
+    "3. 建立 Git commit",
+    "4. 推送到 GitHub",
+    "5. 等待 Vercel 自動部署"
+  ].join("\n");
+
+  const response = await fetch("/api/publish-site", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ title: post?.title || form.elements.title.value })
+  });
+  const result = await readJson(response);
+  buildOutput.textContent = result.output || result.error || "沒有輸出";
+
+  if (!result.ok) {
+    saveState.textContent = "正式更新失敗";
+    alert("文章已儲存，但正式網站更新失敗。請查看下方檢查結果。");
+    return false;
+  }
+
+  saveState.textContent = result.skipped ? "已上架，沒有新變更" : "已推送，等待部署";
+  return true;
 }
 
 form.addEventListener("submit", async (event) => {
@@ -487,7 +516,10 @@ document.querySelector("#saveDraftButton").addEventListener("click", async () =>
 });
 
 document.querySelector("#publishButton").addEventListener("click", async () => {
-  await savePost("published");
+  const post = await savePost("published");
+  if (post) {
+    await publishSite(post);
+  }
 });
 
 document.querySelector("#deleteButton").addEventListener("click", async () => {
