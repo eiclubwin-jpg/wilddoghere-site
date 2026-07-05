@@ -156,6 +156,40 @@ function extractFirstBodyImageSrc(html) {
   return image ? image.getAttribute("src") || "" : "";
 }
 
+function getYouTubeVideoId(input) {
+  try {
+    const url = new URL(String(input || "").trim());
+    const host = url.hostname.replace(/^www\./, "");
+
+    if (host === "youtu.be") {
+      return url.pathname.split("/").filter(Boolean)[0] || "";
+    }
+
+    if (host === "youtube.com" || host === "m.youtube.com" || host === "music.youtube.com") {
+      if (url.pathname === "/watch") {
+        return url.searchParams.get("v") || "";
+      }
+
+      const parts = url.pathname.split("/").filter(Boolean);
+      if (["embed", "shorts", "live"].includes(parts[0])) {
+        return parts[1] || "";
+      }
+    }
+  } catch {
+    return "";
+  }
+
+  return "";
+}
+
+function insertHtmlAtCursor(html) {
+  bodyEditor.focus();
+  document.execCommand("insertHTML", false, html);
+  form.elements.bodyHtml.value = bodyEditor.innerHTML.trim();
+  updatePreview();
+  saveState.textContent = "尚未儲存";
+}
+
 function getFormData() {
   const data = new FormData(form);
   const bodyHtml = bodyEditor.innerHTML.trim();
@@ -372,6 +406,31 @@ document.querySelector("#insertLinkButton").addEventListener("click", () => {
   updatePreview();
 });
 
+document.querySelector("#insertYoutubeButton").addEventListener("click", () => {
+  const url = prompt("請貼上 YouTube 影片網址");
+  if (!url) return;
+
+  const videoId = getYouTubeVideoId(url);
+  if (!videoId) {
+    alert("無法辨識這個 YouTube 網址，請使用 youtube.com/watch、youtube.com/shorts 或 youtu.be 連結。");
+    return;
+  }
+
+  const title = prompt("影片標題（可留空）") || "WildDogHere YouTube video";
+  insertHtmlAtCursor(`
+    <div class="youtube-embed">
+      <iframe
+        src="https://www.youtube.com/embed/${videoId}"
+        title="${title.replace(/"/g, "&quot;")}"
+        loading="lazy"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+        allowfullscreen
+      ></iframe>
+    </div>
+    <p><br></p>
+  `);
+});
+
 document.querySelector("#insertImageButton").addEventListener("click", () => {
   inlineImageInput.click();
 });
@@ -521,7 +580,12 @@ async function publishSite(post) {
       return false;
     }
 
-    saveState.textContent = result.skipped ? "已上架，已確認推送" : "已推送，等待部署";
+    if (result.liveOk === false) {
+      saveState.textContent = "已推送，等待 Vercel";
+      alert("文章已推送到 GitHub，但正式網站尚未確認完成。請查看下方結果，稍後重新整理正式網址。");
+    } else {
+      saveState.textContent = result.skipped ? "正式網站已確認" : "已發布到正式網站";
+    }
     if (result.postUrl) {
       buildOutput.textContent += `\n\n正式文章網址：${result.postUrl}`;
     }

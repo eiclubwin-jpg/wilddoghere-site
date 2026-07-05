@@ -123,12 +123,24 @@ if (!cmsClient.includes("/api/publish-site") || !cmsClient.includes("postUrl")) 
   throw new Error("CMS one-click publish client flow is incomplete.");
 }
 
+if (!cmsClient.includes("getYouTubeVideoId") || !cmsHtml.includes("insertYoutubeButton")) {
+  throw new Error("CMS YouTube embed workflow is missing.");
+}
+
 if (
   !server.includes("npm run typecheck") ||
   !server.includes("collectReferencedImagePaths") ||
-  !server.includes("git push origin HEAD:main")
+  !server.includes("git push origin HEAD:main") ||
+  !server.includes("waitForLivePost")
 ) {
-  throw new Error("CMS publish API must typecheck, publish referenced assets, and push to GitHub main.");
+  throw new Error("CMS publish API must typecheck, publish referenced assets, push to GitHub main, and confirm the live post.");
+}
+
+const globalsCss = fs.readFileSync(path.join(root, "app", "globals.css"), "utf8");
+const cmsCss = fs.readFileSync(path.join(root, "cms", "public", "cms.css"), "utf8");
+
+if (!globalsCss.includes(".article-body .youtube-embed") || !cmsCss.includes(".youtube-embed")) {
+  throw new Error("YouTube embed responsive styles are missing.");
 }
 
 console.log(`CMS check passed. ${posts.length} articles available.`);

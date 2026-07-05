@@ -317,6 +317,68 @@ function runCommand(command, args, timeoutMs = 180000) {
   });
 }
 
+function sleep(ms) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+}
+
+async function checkLivePost(postUrl, title) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 12000);
+
+  try {
+    const response = await fetch(postUrl, {
+      cache: "no-store",
+      signal: controller.signal
+    });
+    const body = await response.text();
+
+    return {
+      ok: response.ok && (!title || body.includes(title)),
+      status: response.status,
+      matchedTitle: !title || body.includes(title)
+    };
+  } catch (error) {
+    return {
+      ok: false,
+      status: 0,
+      matchedTitle: false,
+      error: error instanceof Error ? error.message : String(error)
+    };
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+async function waitForLivePost(postUrl, title) {
+  const maxAttempts = 30;
+  const delayMs = 10000;
+  let output = `\n開始確認正式網站是否已更新：${postUrl}\n`;
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    const result = await checkLivePost(postUrl, title);
+
+    if (result.ok) {
+      return {
+        ok: true,
+        output: `${output}第 ${attempt} 次確認：正式網站已可開啟，且頁面包含文章標題。\n`
+      };
+    }
+
+    output += `第 ${attempt} 次確認：尚未完成（HTTP ${result.status || "無回應"}）。\n`;
+
+    if (attempt < maxAttempts) {
+      await sleep(delayMs);
+    }
+  }
+
+  return {
+    ok: false,
+    output: `${output}已推送到 GitHub，但等待正式網站更新超過 5 分鐘。請到 Vercel 檢查部署狀態，或稍後重新整理正式文章網址。\n`
+  };
+}
+
 function toGitPath(filePath) {
   return path.relative(rootDir, filePath).split(path.sep).join("/");
 }
@@ -385,11 +447,17 @@ async function runPublishSite(response, post) {
     output += status.output || "No content changes.\n";
 
     if (!status.output.trim()) {
+      const postUrl = post?.slug ? `https://www.wilddoghere.com/posts/${post.slug}` : "";
       await step("git push origin HEAD:main", "git", ["push", "origin", "HEAD:main"]);
+      if (postUrl) {
+        const liveCheck = await waitForLivePost(postUrl, post?.title || "");
+        output += liveCheck.output;
+      }
       sendJson(response, 200, {
         ok: true,
         skipped: true,
-        output: `${output}\n沒有新的文章或圖片變更需要提交；已確認推送目前 main 到 GitHub。Vercel 若已有最新 commit，正式站不會重新部署。`
+        postUrl,
+        output: `${output}\n沒有新的文章或圖片變更需要提交；已確認推送目前 main 到 GitHub。${postUrl ? `\n文章網址：${postUrl}` : ""}`
       });
       return;
     }
@@ -403,11 +471,19 @@ async function runPublishSite(response, post) {
     await step("git push origin HEAD:main", "git", ["push", "origin", "HEAD:main"]);
 
     const postUrl = post?.slug ? `https://www.wilddoghere.com/posts/${post.slug}` : "";
+    let liveOk = true;
+
+    if (postUrl) {
+      const liveCheck = await waitForLivePost(postUrl, post?.title || "");
+      output += liveCheck.output;
+      liveOk = liveCheck.ok;
+    }
 
     sendJson(response, 200, {
       ok: true,
+      liveOk,
       postUrl,
-      output: `${output}\n已推送到 GitHub。Vercel 會開始部署正式網站，通常需要 1-3 分鐘。${postUrl ? `\n文章網址：${postUrl}` : ""}`
+      output: `${output}\n已推送到 GitHub。${liveOk ? "正式網站已確認可讀。" : "正式網站尚未確認完成，請查看上方等待結果。"}${postUrl ? `\n文章網址：${postUrl}` : ""}`
     });
   } catch (error) {
     sendJson(response, 500, {
