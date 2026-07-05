@@ -149,12 +149,13 @@
           </div>
 
           <div class="actions">
-            <button type="submit">儲存文章</button>
+            <button type="submit">只儲存在 CMS</button>
             <button id="saveDraftButton" type="button" class="ghost">儲存草稿</button>
             <button id="publishButton" type="button">一鍵發布到正式網站</button>
             <button id="deleteButton" type="button" class="danger">刪除文章</button>
           </div>
           <p class="help-text">
+            「只儲存在 CMS」只會更新本機資料，不會更新正式網站。
             「一鍵發布到正式網站」會儲存文章、檢查 CMS、檢查 TypeScript、建置網站、建立 commit、推送 GitHub，正式站會由 Vercel 自動部署。
           </p>
         </form>

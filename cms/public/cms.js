@@ -547,7 +547,7 @@ async function savePost(statusOverride) {
   setFormData(result.post);
   renderList();
   saveState.textContent =
-    result.post.status === "published" ? "已上架" : "已儲存";
+    result.post.status === "published" ? "已儲存在 CMS，正式網站尚未更新" : "已儲存";
   return result.post;
 }
 
@@ -598,7 +598,20 @@ async function publishSite(post) {
 
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
-  await savePost();
+  const post = await savePost();
+
+  if (post?.status === "published") {
+    buildOutput.textContent = [
+      "這篇文章已儲存在 CMS，但正式網站還不會更新。",
+      "正式網站需要 commit / push 到 GitHub，並等待 Vercel 部署。",
+      "",
+      "若要現在更新正式網站，請按「確定」執行一鍵發布。"
+    ].join("\n");
+
+    if (confirm("文章已儲存在 CMS，但正式網站尚未更新。要現在一鍵發布到正式網站嗎？")) {
+      await publishSite(post);
+    }
+  }
 });
 
 document.querySelector("#saveDraftButton").addEventListener("click", async () => {

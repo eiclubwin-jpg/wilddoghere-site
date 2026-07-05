@@ -113,6 +113,10 @@ if (!cmsHtml.includes("一鍵發布到正式網站")) {
   throw new Error("CMS one-click website publish button is missing.");
 }
 
+if (!cmsHtml.includes("只儲存在 CMS")) {
+  throw new Error("CMS local-only save label is missing.");
+}
+
 if (!cmsHtml.includes("logoutButton")) {
   throw new Error("CMS logout button is missing.");
 }
@@ -125,6 +129,10 @@ if (!cmsClient.includes("/api/publish-site") || !cmsClient.includes("postUrl")) 
 
 if (!cmsClient.includes("getYouTubeVideoId") || !cmsHtml.includes("insertYoutubeButton")) {
   throw new Error("CMS YouTube embed workflow is missing.");
+}
+
+if (!cmsClient.includes("正式網站尚未更新") || !cmsClient.includes("要現在一鍵發布到正式網站嗎")) {
+  throw new Error("CMS must warn when a published post is only saved locally.");
 }
 
 if (
