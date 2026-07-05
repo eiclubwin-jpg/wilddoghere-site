@@ -15,6 +15,7 @@ const excludedDirectoryNames = new Set([
   ".git",
   ".next",
   ".vercel",
+  ".wilddoghere-publish-worktree",
   "node_modules",
   "dist"
 ]);

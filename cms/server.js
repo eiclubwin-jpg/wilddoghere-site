@@ -10,6 +10,8 @@ const authPath = path.join(__dirname, "auth.json");
 const imagesDir = path.join(rootDir, "public", "images", "contents");
 const publicDir = path.join(__dirname, "public");
 const port = Number(process.env.CMS_PORT || 4173);
+const defaultPublishRemote = "https://github.com/eiclubwin-jpg/wilddoghere-site.git";
+const publishWorktreeDir = path.join(rootDir, ".wilddoghere-publish-worktree");
 
 const categories = [
   "親子開箱",
@@ -240,24 +242,11 @@ function saveImage(payload) {
   return `/images/contents/${filename}`;
 }
 
-function runBuild(response) {
-  const child = spawn("npm", ["run", "build"], {
-    cwd: rootDir,
-    shell: true
-  });
-  let output = "";
-
-  child.stdout.on("data", (data) => {
-    output += data.toString();
-  });
-  child.stderr.on("data", (data) => {
-    output += data.toString();
-  });
-  child.on("close", (code) => {
-    sendJson(response, code === 0 ? 200 : 500, {
-      ok: code === 0,
-      output
-    });
+async function runBuild(response) {
+  const result = await runCommand("npm", ["run", "build"]);
+  sendJson(response, result.code === 0 ? 200 : 500, {
+    ok: result.code === 0,
+    output: result.output
   });
 }
 
@@ -286,11 +275,11 @@ function getCommandInvocation(command, args) {
   };
 }
 
-function runCommand(command, args, timeoutMs = 180000) {
+function runCommand(command, args, timeoutMs = 180000, cwd = rootDir) {
   return new Promise((resolve) => {
     const invocation = getCommandInvocation(command, args);
     const child = spawn(invocation.command, invocation.args, {
-      cwd: rootDir,
+      cwd,
       env: {
         ...process.env,
         GIT_TERMINAL_PROMPT: "0"
@@ -332,6 +321,108 @@ function runCommand(command, args, timeoutMs = 180000) {
       resolve({ code, output });
     });
   });
+}
+
+function pathExists(filePath) {
+  return fs.existsSync(filePath);
+}
+
+function hasGitRepository(directory) {
+  return pathExists(path.join(directory, ".git"));
+}
+
+function copyFileToPublishRoot(relativePath, publishRoot) {
+  const sourcePath = path.join(rootDir, relativePath);
+  const destinationPath = path.join(publishRoot, relativePath);
+
+  if (!fs.existsSync(sourcePath)) {
+    return;
+  }
+
+  fs.mkdirSync(path.dirname(destinationPath), { recursive: true });
+  fs.copyFileSync(sourcePath, destinationPath);
+}
+
+async function prepareGitlessPublishRoot(output) {
+  const remoteUrl = process.env.CMS_PUBLISH_REMOTE || defaultPublishRemote;
+  let nextOutput = output;
+
+  nextOutput += [
+    "",
+    "目前這個 Windows CMS 資料夾不是 Git repository。",
+    "CMS 會建立一個隱藏發布工作區，從 GitHub main 拉最新版，再把文章資料放進去發布。",
+    `發布來源：${remoteUrl}`,
+    ""
+  ].join("\n");
+
+  const gitVersion = await runCommand("git", ["--version"]);
+  nextOutput += `\n$ git --version\n${gitVersion.output || ""}`;
+  if (gitVersion.code !== 0) {
+    throw new Error("Windows 需要先安裝 Git for Windows，才能一鍵發布到 GitHub。");
+  }
+
+  if (fs.existsSync(publishWorktreeDir)) {
+    const hasGit = hasGitRepository(publishWorktreeDir);
+    if (!hasGit) {
+      fs.rmSync(publishWorktreeDir, { recursive: true, force: true });
+    }
+  }
+
+  if (!fs.existsSync(publishWorktreeDir)) {
+    const cloneResult = await runCommand(
+      "git",
+      ["clone", "--branch", "main", "--single-branch", remoteUrl, publishWorktreeDir],
+      300000
+    );
+    nextOutput += `\n$ git clone --branch main --single-branch ${remoteUrl} .wilddoghere-publish-worktree\n${cloneResult.output || ""}`;
+    if (cloneResult.code !== 0) {
+      throw new Error("無法建立 GitHub 發布工作區。請確認 Windows 已登入 GitHub，且有 repository 權限。");
+    }
+  } else {
+    const fetchResult = await runCommand("git", ["fetch", "origin", "main"], 180000, publishWorktreeDir);
+    nextOutput += `\n$ git fetch origin main\n${fetchResult.output || ""}`;
+    if (fetchResult.code !== 0) {
+      throw new Error("無法更新 GitHub 發布工作區。請確認 Windows GitHub 登入狀態。");
+    }
+
+    const checkoutResult = await runCommand("git", ["checkout", "-B", "main", "origin/main"], 180000, publishWorktreeDir);
+    nextOutput += `\n$ git checkout -B main origin/main\n${checkoutResult.output || ""}`;
+    if (checkoutResult.code !== 0) {
+      throw new Error("無法切換 GitHub 發布工作區到 main。");
+    }
+
+    const resetResult = await runCommand("git", ["reset", "--hard", "origin/main"], 180000, publishWorktreeDir);
+    nextOutput += `\n$ git reset --hard origin/main\n${resetResult.output || ""}`;
+    if (resetResult.code !== 0) {
+      throw new Error("無法重設 GitHub 發布工作區。");
+    }
+  }
+
+  return {
+    publishRoot: publishWorktreeDir,
+    output: nextOutput
+  };
+}
+
+async function getPublishRoot(output) {
+  if (hasGitRepository(rootDir)) {
+    return {
+      publishRoot: rootDir,
+      output
+    };
+  }
+
+  return prepareGitlessPublishRoot(output);
+}
+
+function copyDeployPathsToPublishRoot(deployPaths, publishRoot) {
+  if (publishRoot === rootDir) {
+    return;
+  }
+
+  for (const deployPath of deployPaths) {
+    copyFileToPublishRoot(deployPath, publishRoot);
+  }
 }
 
 function sleep(ms) {
@@ -453,19 +544,37 @@ async function runPublishSite(response, post) {
     await step("npm run typecheck", "npm", ["run", "typecheck"]);
     await step("npm run build", "npm", ["run", "build"]);
 
+    const publishContext = await getPublishRoot(output);
+    output = publishContext.output;
+    const publishRoot = publishContext.publishRoot;
+
     output += "\n要發布的檔案：\n";
     output += deployPaths.map((filePath) => `- ${filePath}`).join("\n");
     output += "\n";
 
-    await step("git add content files", "git", ["add", "-A", "--", ...deployPaths]);
+    copyDeployPathsToPublishRoot(deployPaths, publishRoot);
 
-    const status = await runCommand("git", ["status", "--porcelain", "--", ...deployPaths]);
+    async function publishStep(label, command, args) {
+      output += `\n$ ${formatCommand(command, args)}\n`;
+      const result = await runCommand(command, args, 180000, publishRoot);
+      output += result.output || "";
+
+      if (result.code !== 0) {
+        throw new Error(`${label} failed.`);
+      }
+
+      return result;
+    }
+
+    await publishStep("git add content files", "git", ["add", "-A", "--", ...deployPaths]);
+
+    const status = await runCommand("git", ["status", "--porcelain", "--", ...deployPaths], 180000, publishRoot);
     output += `\n$ ${formatCommand("git", ["status", "--porcelain", "--", ...deployPaths])}\n`;
     output += status.output || "No content changes.\n";
 
     if (!status.output.trim()) {
       const postUrl = post?.slug ? `https://www.wilddoghere.com/posts/${post.slug}` : "";
-      await step("git push origin HEAD:main", "git", ["push", "origin", "HEAD:main"]);
+      await publishStep("git push origin HEAD:main", "git", ["push", "origin", "HEAD:main"]);
       if (postUrl) {
         const liveCheck = await waitForLivePost(postUrl, post?.title || "");
         output += liveCheck.output;
@@ -480,12 +589,12 @@ async function runPublishSite(response, post) {
     }
 
     const safeTitle = String(post?.title || "content").trim().slice(0, 80);
-    await step("git commit", "git", [
+    await publishStep("git commit", "git", [
       "commit",
       "-m",
       `Publish CMS article: ${safeTitle}`
     ]);
-    await step("git push origin HEAD:main", "git", ["push", "origin", "HEAD:main"]);
+    await publishStep("git push origin HEAD:main", "git", ["push", "origin", "HEAD:main"]);
 
     const postUrl = post?.slug ? `https://www.wilddoghere.com/posts/${post.slug}` : "";
     let liveOk = true;

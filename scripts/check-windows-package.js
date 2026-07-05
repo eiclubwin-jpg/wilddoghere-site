@@ -81,6 +81,7 @@ const required = [
 const forbidden = [
   ".git/",
   ".next/",
+  ".wilddoghere-publish-worktree/",
   "node_modules/",
   ".DS_Store",
   "open-wilddog-cms.command",

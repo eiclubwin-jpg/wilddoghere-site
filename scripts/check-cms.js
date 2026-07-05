@@ -140,9 +140,11 @@ if (
   !server.includes("collectReferencedImagePaths") ||
   !server.includes("git push origin HEAD:main") ||
   !server.includes("waitForLivePost") ||
-  !server.includes("cmd.exe")
+  !server.includes("cmd.exe") ||
+  !server.includes("prepareGitlessPublishRoot") ||
+  !server.includes(".wilddoghere-publish-worktree")
 ) {
-  throw new Error("CMS publish API must typecheck, publish referenced assets, push to GitHub main, support Windows command execution, and confirm the live post.");
+  throw new Error("CMS publish API must typecheck, publish referenced assets, push to GitHub main, support Windows command execution and gitless Windows packages, and confirm the live post.");
 }
 
 const globalsCss = fs.readFileSync(path.join(root, "app", "globals.css"), "utf8");
