@@ -261,15 +261,27 @@ function runBuild(response) {
   });
 }
 
+function getExecutable(command) {
+  if (process.platform !== "win32") {
+    return command;
+  }
+
+  return command === "npm" ? "npm.cmd" : command;
+}
+
+function formatCommand(command, args) {
+  return [command, ...args].join(" ");
+}
+
 function runCommand(command, args, timeoutMs = 180000) {
   return new Promise((resolve) => {
-    const child = spawn(command, args, {
+    const child = spawn(getExecutable(command), args, {
       cwd: rootDir,
       env: {
         ...process.env,
         GIT_TERMINAL_PROMPT: "0"
       },
-      shell: true
+      shell: false
     });
     let output = "";
     let settled = false;
@@ -280,7 +292,7 @@ function runCommand(command, args, timeoutMs = 180000) {
       child.kill();
       resolve({
         code: 124,
-        output: `${output}\nCommand timed out. 請確認 GitHub 登入狀態後再試一次。\n`
+        output: `${output}\nCommand timed out: ${formatCommand(command, args)}\n請確認 GitHub 登入狀態後再試一次。\n`
       });
     }, timeoutMs);
 
@@ -305,16 +317,48 @@ function runCommand(command, args, timeoutMs = 180000) {
   });
 }
 
-async function runPublishSite(response, postTitle) {
-  const deployPaths = [
-    "data/contents.json",
-    "public/images/contents",
-    "public/images/brand"
-  ];
+function toGitPath(filePath) {
+  return path.relative(rootDir, filePath).split(path.sep).join("/");
+}
+
+function collectReferencedImagePaths() {
+  const contents = loadContents();
+  const imagePaths = new Set();
+
+  function addImagePath(imagePath) {
+    if (!imagePath || !String(imagePath).startsWith("/images/")) {
+      return;
+    }
+
+    const normalizedPath = path
+      .normalize(String(imagePath).split("?")[0])
+      .replace(/^(\.\.(\/|\\|$))+/, "");
+    const absolutePath = path.join(rootDir, "public", normalizedPath);
+    const publicRoot = path.join(rootDir, "public");
+
+    if (absolutePath.startsWith(publicRoot) && fs.existsSync(absolutePath)) {
+      imagePaths.add(toGitPath(absolutePath));
+    }
+  }
+
+  for (const post of contents) {
+    addImagePath(post.coverImage);
+
+    const html = String(post.bodyHtml || "");
+    for (const match of html.matchAll(/<img\b[^>]*\bsrc=["']([^"']+)["']/gi)) {
+      addImagePath(match[1]);
+    }
+  }
+
+  return [...imagePaths].sort();
+}
+
+async function runPublishSite(response, post) {
+  const deployPaths = ["data/contents.json", ...collectReferencedImagePaths()];
   let output = "";
 
   async function step(label, command, args) {
-    output += `\n$ ${label}\n`;
+    output += `\n$ ${formatCommand(command, args)}\n`;
     const result = await runCommand(command, args);
     output += result.output || "";
 
@@ -327,33 +371,43 @@ async function runPublishSite(response, postTitle) {
 
   try {
     await step("npm run cms:check", "npm", ["run", "cms:check"]);
+    await step("npm run typecheck", "npm", ["run", "typecheck"]);
     await step("npm run build", "npm", ["run", "build"]);
-    await step("git add content files", "git", ["add", "--", ...deployPaths]);
+
+    output += "\n要發布的檔案：\n";
+    output += deployPaths.map((filePath) => `- ${filePath}`).join("\n");
+    output += "\n";
+
+    await step("git add content files", "git", ["add", "-A", "--", ...deployPaths]);
 
     const status = await runCommand("git", ["status", "--porcelain", "--", ...deployPaths]);
-    output += "\n$ git status content files\n";
+    output += `\n$ ${formatCommand("git", ["status", "--porcelain", "--", ...deployPaths])}\n`;
     output += status.output || "No content changes.\n";
 
     if (!status.output.trim()) {
+      await step("git push origin HEAD:main", "git", ["push", "origin", "HEAD:main"]);
       sendJson(response, 200, {
         ok: true,
         skipped: true,
-        output: `${output}\n沒有新的文章或圖片變更需要推送。`
+        output: `${output}\n沒有新的文章或圖片變更需要提交；已確認推送目前 main 到 GitHub。Vercel 若已有最新 commit，正式站不會重新部署。`
       });
       return;
     }
 
-    const safeTitle = String(postTitle || "content").trim().slice(0, 80);
+    const safeTitle = String(post?.title || "content").trim().slice(0, 80);
     await step("git commit", "git", [
       "commit",
       "-m",
       `Publish CMS article: ${safeTitle}`
     ]);
-    await step("git push origin main", "git", ["push", "origin", "main"]);
+    await step("git push origin HEAD:main", "git", ["push", "origin", "HEAD:main"]);
+
+    const postUrl = post?.slug ? `https://www.wilddoghere.com/posts/${post.slug}` : "";
 
     sendJson(response, 200, {
       ok: true,
-      output: `${output}\n已推送到 GitHub。Vercel 會開始部署正式網站，通常需要 1-3 分鐘。`
+      postUrl,
+      output: `${output}\n已推送到 GitHub。Vercel 會開始部署正式網站，通常需要 1-3 分鐘。${postUrl ? `\n文章網址：${postUrl}` : ""}`
     });
   } catch (error) {
     sendJson(response, 500, {
@@ -489,7 +543,7 @@ const server = http.createServer(async (request, response) => {
     if (request.method === "POST" && url.pathname === "/api/publish-site") {
       if (!requireAuth(request, response)) return;
       const body = await readJsonBody(request);
-      runPublishSite(response, body.title || "CMS update");
+      runPublishSite(response, body.post || { title: body.title || "CMS update" });
       return;
     }
 

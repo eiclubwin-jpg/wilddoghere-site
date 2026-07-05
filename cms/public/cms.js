@@ -493,31 +493,43 @@ async function savePost(statusOverride) {
 }
 
 async function publishSite(post) {
+  const publishButton = document.querySelector("#publishButton");
+  publishButton.disabled = true;
+  publishButton.textContent = "正在一鍵發布...";
   buildOutput.textContent = [
     "正在更新正式網站...",
     "1. 檢查 CMS 資料",
-    "2. 建置網站",
-    "3. 建立 Git commit",
-    "4. 推送到 GitHub",
-    "5. 等待 Vercel 自動部署"
+    "2. 檢查 TypeScript",
+    "3. 建置網站",
+    "4. 建立 Git commit",
+    "5. 推送到 GitHub",
+    "6. 等待 Vercel 自動部署"
   ].join("\n");
 
-  const response = await fetch("/api/publish-site", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ title: post?.title || form.elements.title.value })
-  });
-  const result = await readJson(response);
-  buildOutput.textContent = result.output || result.error || "沒有輸出";
+  try {
+    const response = await fetch("/api/publish-site", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ post })
+    });
+    const result = await readJson(response);
+    buildOutput.textContent = result.output || result.error || "沒有輸出";
 
-  if (!result.ok) {
-    saveState.textContent = "正式更新失敗";
-    alert("文章已儲存，但正式網站更新失敗。請查看下方檢查結果。");
-    return false;
+    if (!result.ok) {
+      saveState.textContent = "正式更新失敗";
+      alert("文章已儲存，但正式網站更新失敗。請查看下方檢查結果。");
+      return false;
+    }
+
+    saveState.textContent = result.skipped ? "已上架，已確認推送" : "已推送，等待部署";
+    if (result.postUrl) {
+      buildOutput.textContent += `\n\n正式文章網址：${result.postUrl}`;
+    }
+    return true;
+  } finally {
+    publishButton.disabled = false;
+    publishButton.textContent = "一鍵發布到正式網站";
   }
-
-  saveState.textContent = result.skipped ? "已上架，沒有新變更" : "已推送，等待部署";
-  return true;
 }
 
 form.addEventListener("submit", async (event) => {

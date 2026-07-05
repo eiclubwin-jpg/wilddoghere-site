@@ -109,8 +109,26 @@ if (!cmsHtml.includes("publishButton") || !cmsHtml.includes("saveDraftButton")) 
   throw new Error("CMS publish/draft workflow buttons are missing.");
 }
 
+if (!cmsHtml.includes("一鍵發布到正式網站")) {
+  throw new Error("CMS one-click website publish button is missing.");
+}
+
 if (!cmsHtml.includes("logoutButton")) {
   throw new Error("CMS logout button is missing.");
+}
+
+const cmsClient = fs.readFileSync(path.join(root, "cms", "public", "cms.js"), "utf8");
+
+if (!cmsClient.includes("/api/publish-site") || !cmsClient.includes("postUrl")) {
+  throw new Error("CMS one-click publish client flow is incomplete.");
+}
+
+if (
+  !server.includes("npm run typecheck") ||
+  !server.includes("collectReferencedImagePaths") ||
+  !server.includes("git push origin HEAD:main")
+) {
+  throw new Error("CMS publish API must typecheck, publish referenced assets, and push to GitHub main.");
 }
 
 console.log(`CMS check passed. ${posts.length} articles available.`);
