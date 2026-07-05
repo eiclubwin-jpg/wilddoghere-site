@@ -261,27 +261,41 @@ function runBuild(response) {
   });
 }
 
-function getExecutable(command) {
-  if (process.platform !== "win32") {
-    return command;
-  }
-
-  return command === "npm" ? "npm.cmd" : command;
-}
-
 function formatCommand(command, args) {
   return [command, ...args].join(" ");
 }
 
+function getCommandInvocation(command, args) {
+  if (process.platform !== "win32") {
+    return {
+      command,
+      args,
+      options: {
+        shell: false
+      }
+    };
+  }
+
+  return {
+    command: "cmd.exe",
+    args: ["/d", "/s", "/c", formatCommand(command, args)],
+    options: {
+      shell: false,
+      windowsHide: true
+    }
+  };
+}
+
 function runCommand(command, args, timeoutMs = 180000) {
   return new Promise((resolve) => {
-    const child = spawn(getExecutable(command), args, {
+    const invocation = getCommandInvocation(command, args);
+    const child = spawn(invocation.command, invocation.args, {
       cwd: rootDir,
       env: {
         ...process.env,
         GIT_TERMINAL_PROMPT: "0"
       },
-      shell: false
+      ...invocation.options
     });
     let output = "";
     let settled = false;
@@ -312,6 +326,9 @@ function runCommand(command, args, timeoutMs = 180000) {
       if (settled) return;
       settled = true;
       clearTimeout(timeout);
+      if (code !== 0 && !output.trim()) {
+        output = `Command exited with code ${code}: ${formatCommand(command, args)}\n`;
+      }
       resolve({ code, output });
     });
   });

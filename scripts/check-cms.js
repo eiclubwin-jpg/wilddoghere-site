@@ -139,9 +139,10 @@ if (
   !server.includes("npm run typecheck") ||
   !server.includes("collectReferencedImagePaths") ||
   !server.includes("git push origin HEAD:main") ||
-  !server.includes("waitForLivePost")
+  !server.includes("waitForLivePost") ||
+  !server.includes("cmd.exe")
 ) {
-  throw new Error("CMS publish API must typecheck, publish referenced assets, push to GitHub main, and confirm the live post.");
+  throw new Error("CMS publish API must typecheck, publish referenced assets, push to GitHub main, support Windows command execution, and confirm the live post.");
 }
 
 const globalsCss = fs.readFileSync(path.join(root, "app", "globals.css"), "utf8");
