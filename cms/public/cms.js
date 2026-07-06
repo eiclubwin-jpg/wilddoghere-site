@@ -10,6 +10,33 @@ const state = {
   watermarkLogo: null
 };
 
+const emojiOptions = [
+  { id: "dogmom-speechless", name: "野狗媽傻眼", image: "/images/emojis/dogmom-speechless.png", alt: "野狗媽傻眼表情符號" },
+  { id: "dogmom-tired", name: "野狗媽累了", image: "/images/emojis/dogmom-tired.png", alt: "野狗媽累了表情符號" },
+  { id: "dogmom-done", name: "野狗媽收工", image: "/images/emojis/dogmom-done.png", alt: "野狗媽收工表情符號" },
+  { id: "dogdad-calm", name: "野狗爸冷靜", image: "/images/emojis/dogdad-calm.png", alt: "野狗爸冷靜表情符號" },
+  { id: "dogdad-check", name: "野狗爸我看看", image: "/images/emojis/dogdad-check.png", alt: "野狗爸我看看表情符號" },
+  { id: "dogdad-good", name: "野狗爸不錯", image: "/images/emojis/dogdad-good.png", alt: "野狗爸不錯表情符號" },
+  { id: "firstkid-amazing", name: "小野狗一號好棒", image: "/images/emojis/firstkid-amazing.png", alt: "小野狗一號好棒表情符號" },
+  { id: "firstkid-please", name: "小野狗一號拜託", image: "/images/emojis/firstkid-please.png", alt: "小野狗一號拜託表情符號" },
+  { id: "firstkid-sparkle", name: "小野狗一號閃亮", image: "/images/emojis/firstkid-sparkle.png", alt: "小野狗一號閃亮表情符號" },
+  { id: "secondkid-angry", name: "小野狗二號生氣", image: "/images/emojis/secondkid-angry.png", alt: "小野狗二號生氣表情符號" },
+  { id: "secondkid-no", name: "小野狗二號不要", image: "/images/emojis/secondkid-no.png", alt: "小野狗二號不要表情符號" },
+  { id: "secondkid-wait", name: "小野狗二號等等", image: "/images/emojis/secondkid-wait.png", alt: "小野狗二號等等表情符號" },
+  { id: "thirdkid-giggle", name: "小野狗三號偷笑", image: "/images/emojis/thirdkid-giggle.png", alt: "小野狗三號偷笑表情符號" },
+  { id: "thirdkid-sleepy", name: "小野狗三號睡了", image: "/images/emojis/thirdkid-sleepy.png", alt: "小野狗三號睡了表情符號" },
+  { id: "thirdkid-play", name: "小野狗三號想玩", image: "/images/emojis/thirdkid-play.png", alt: "小野狗三號想玩表情符號" },
+  { id: "grandpa-okay", name: "阿公好喔", image: "/images/emojis/grandpa-okay.png", alt: "阿公好喔表情符號" },
+  { id: "grandpa-thanks", name: "阿公辛苦了", image: "/images/emojis/grandpa-thanks.png", alt: "阿公辛苦了表情符號" },
+  { id: "grandpa-stable", name: "阿公穩啦", image: "/images/emojis/grandpa-stable.png", alt: "阿公穩啦表情符號" },
+  { id: "grandma-glasses", name: "阿嬤眼鏡呢", image: "/images/emojis/grandma-glasses.png", alt: "阿嬤眼鏡呢表情符號" },
+  { id: "grandma-no-walk", name: "阿嬤不走啦", image: "/images/emojis/grandma-no-walk.png", alt: "阿嬤不走啦表情符號" },
+  { id: "grandma-okay", name: "阿嬤好啦", image: "/images/emojis/grandma-okay.png", alt: "阿嬤好啦表情符號" },
+  { id: "family-unbox", name: "野狗軍團開箱", image: "/images/emojis/family-unbox.png", alt: "野狗軍團開箱表情符號" },
+  { id: "family-finish", name: "野狗軍團打完收工", image: "/images/emojis/family-finish.png", alt: "野狗軍團打完收工表情符號" },
+  { id: "family-go-out", name: "野狗軍團一起去", image: "/images/emojis/family-go-out.png", alt: "野狗軍團一起去表情符號" }
+];
+
 const form = document.querySelector("#postForm");
 const postList = document.querySelector("#postList");
 const searchInput = document.querySelector("#searchInput");
@@ -22,6 +49,7 @@ const buildOutput = document.querySelector("#buildOutput");
 const bodyEditor = document.querySelector("#bodyEditor");
 const inlineImageInput = document.querySelector("#inlineImageInput");
 const watermarkEnabled = document.querySelector("#watermarkEnabled");
+const emojiSelect = document.querySelector("#emojiSelect");
 
 function loadImage(src) {
   return new Promise((resolve, reject) => {
@@ -221,6 +249,12 @@ function setOptions(name, values) {
   const select = form.elements[name];
   select.innerHTML = values
     .map((value) => `<option value="${value}">${value}</option>`)
+    .join("");
+}
+
+function setEmojiOptions() {
+  emojiSelect.innerHTML = emojiOptions
+    .map((emoji) => `<option value="${emoji.id}">${emoji.name}</option>`)
     .join("");
 }
 
@@ -429,6 +463,15 @@ document.querySelector("#insertYoutubeButton").addEventListener("click", () => {
     </div>
     <p><br></p>
   `);
+});
+
+document.querySelector("#insertEmojiButton").addEventListener("click", () => {
+  const emoji = emojiOptions.find((item) => item.id === emojiSelect.value);
+  if (!emoji) return;
+
+  insertHtmlAtCursor(
+    `<img class="emoji-sticker" src="${emoji.image}" alt="${emoji.alt}" width="120" height="120" loading="lazy" />`
+  );
 });
 
 document.querySelector("#insertImageButton").addEventListener("click", () => {
@@ -650,6 +693,8 @@ document.querySelector("#logoutButton").addEventListener("click", async () => {
   await fetch("/api/logout", { method: "POST" });
   window.location.href = "/login";
 });
+
+setEmojiOptions();
 
 loadAll().catch((error) => {
   buildOutput.textContent = error.message;

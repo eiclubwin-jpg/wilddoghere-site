@@ -294,6 +294,17 @@ form {
   padding: 0 12px;
 }
 
+.toolbar-select {
+  width: min(100%, 220px);
+  min-height: 36px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.75);
+  color: #4a2f23;
+  font-size: 13px;
+  font-weight: 800;
+  padding: 0 34px 0 12px;
+}
+
 .hidden-file {
   display: none;
 }
@@ -326,6 +337,15 @@ form {
   height: auto;
   margin: 16px auto;
   max-width: 100%;
+}
+
+.body-editor img.emoji-sticker,
+.preview-content img.emoji-sticker {
+  display: inline-block;
+  width: min(120px, 46vw);
+  border-radius: 0;
+  margin: 8px 6px;
+  vertical-align: middle;
 }
 
 .body-editor .youtube-embed,

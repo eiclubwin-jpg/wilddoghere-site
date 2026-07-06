@@ -131,6 +131,15 @@ if (!cmsClient.includes("getYouTubeVideoId") || !cmsHtml.includes("insertYoutube
   throw new Error("CMS YouTube embed workflow is missing.");
 }
 
+if (
+  !cmsHtml.includes("emojiSelect") ||
+  !cmsHtml.includes("insertEmojiButton") ||
+  !cmsClient.includes("emojiOptions") ||
+  !cmsClient.includes("emoji-sticker")
+) {
+  throw new Error("CMS emoji sticker workflow is missing.");
+}
+
 if (!cmsClient.includes("正式網站尚未更新") || !cmsClient.includes("要現在一鍵發布到正式網站嗎")) {
   throw new Error("CMS must warn when a published post is only saved locally.");
 }
@@ -152,6 +161,27 @@ const cmsCss = fs.readFileSync(path.join(root, "cms", "public", "cms.css"), "utf
 
 if (!globalsCss.includes(".article-body .youtube-embed") || !cmsCss.includes(".youtube-embed")) {
   throw new Error("YouTube embed responsive styles are missing.");
+}
+
+if (!globalsCss.includes(".article-body img.emoji-sticker") || !cmsCss.includes("img.emoji-sticker")) {
+  throw new Error("Emoji sticker responsive styles are missing.");
+}
+
+const emojiDataPath = path.join(root, "data", "emojis.ts");
+const emojiImageDir = path.join(root, "public", "images", "emojis");
+
+if (!fs.existsSync(emojiDataPath)) {
+  throw new Error("Emoji data file is missing.");
+}
+
+if (!fs.existsSync(emojiImageDir)) {
+  throw new Error("Emoji image directory is missing.");
+}
+
+const emojiFiles = fs.readdirSync(emojiImageDir).filter((fileName) => fileName.endsWith(".png"));
+
+if (emojiFiles.length < 24) {
+  throw new Error("Expected at least 24 emoji PNG files.");
 }
 
 console.log(`CMS check passed. ${posts.length} articles available.`);

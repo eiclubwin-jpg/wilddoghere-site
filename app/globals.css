@@ -89,6 +89,14 @@ body {
   max-width: 100%;
 }
 
+.article-body img.emoji-sticker {
+  display: inline-block;
+  width: min(120px, 46vw);
+  border-radius: 0;
+  margin: 0.4em 0.35em;
+  vertical-align: middle;
+}
+
 .article-body .youtube-embed {
   aspect-ratio: 16 / 9;
   overflow: hidden;
