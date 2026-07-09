@@ -14,6 +14,14 @@
       </div>
       <div class="topbar-actions">
         <button id="newPostButton" class="ghost">新增文章</button>
+        <a
+          class="button-link ghost"
+          href="https://vercel.com/dashboard"
+          target="_blank"
+          rel="noreferrer"
+        >
+          查看流量
+        </a>
         <button id="buildButton">檢查建置</button>
         <button id="logoutButton" class="ghost">登出</button>
       </div>
@@ -99,6 +107,9 @@
               <button type="button" id="insertImageButton">插入圖片</button>
               <button type="button" id="insertYoutubeButton">YouTube</button>
               <select id="emojiSelect" class="toolbar-select" aria-label="選擇表情符號"></select>
+              <span class="emoji-preview" aria-live="polite">
+                <img id="emojiPreview" alt="目前選擇的表情符號預覽" />
+              </span>
               <button type="button" id="insertEmojiButton">插入表情</button>
               <input id="inlineImageInput" class="hidden-file" type="file" accept="image/png,image/jpeg,image/webp" />
             </div>

@@ -121,6 +121,10 @@ if (!cmsHtml.includes("logoutButton")) {
   throw new Error("CMS logout button is missing.");
 }
 
+if (!cmsHtml.includes("查看流量") || !cmsHtml.includes("vercel.com/dashboard")) {
+  throw new Error("CMS analytics dashboard link is missing.");
+}
+
 const cmsClient = fs.readFileSync(path.join(root, "cms", "public", "cms.js"), "utf8");
 
 if (!cmsClient.includes("/api/publish-site") || !cmsClient.includes("postUrl")) {
@@ -133,11 +137,13 @@ if (!cmsClient.includes("getYouTubeVideoId") || !cmsHtml.includes("insertYoutube
 
 if (
   !cmsHtml.includes("emojiSelect") ||
+  !cmsHtml.includes("emojiPreview") ||
   !cmsHtml.includes("insertEmojiButton") ||
   !cmsClient.includes("emojiOptions") ||
-  !cmsClient.includes("emoji-sticker")
+  !cmsClient.includes("emoji-sticker") ||
+  !cmsClient.includes("updateEmojiPreview")
 ) {
-  throw new Error("CMS emoji sticker workflow is missing.");
+  throw new Error("CMS emoji sticker workflow or preview is missing.");
 }
 
 if (!cmsClient.includes("正式網站尚未更新") || !cmsClient.includes("要現在一鍵發布到正式網站嗎")) {
@@ -158,6 +164,11 @@ if (
 
 const globalsCss = fs.readFileSync(path.join(root, "app", "globals.css"), "utf8");
 const cmsCss = fs.readFileSync(path.join(root, "cms", "public", "cms.css"), "utf8");
+const appLayout = fs.readFileSync(path.join(root, "app", "layout.tsx"), "utf8");
+
+if (!appLayout.includes("/_vercel/insights/script.js")) {
+  throw new Error("Vercel Analytics tracking script is missing.");
+}
 
 if (!globalsCss.includes(".article-body .youtube-embed") || !cmsCss.includes(".youtube-embed")) {
   throw new Error("YouTube embed responsive styles are missing.");

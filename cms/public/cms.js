@@ -50,6 +50,7 @@ const bodyEditor = document.querySelector("#bodyEditor");
 const inlineImageInput = document.querySelector("#inlineImageInput");
 const watermarkEnabled = document.querySelector("#watermarkEnabled");
 const emojiSelect = document.querySelector("#emojiSelect");
+const emojiPreview = document.querySelector("#emojiPreview");
 
 function loadImage(src) {
   return new Promise((resolve, reject) => {
@@ -256,6 +257,19 @@ function setEmojiOptions() {
   emojiSelect.innerHTML = emojiOptions
     .map((emoji) => `<option value="${emoji.id}">${emoji.name}</option>`)
     .join("");
+  updateEmojiPreview();
+}
+
+function updateEmojiPreview() {
+  const emoji = emojiOptions.find((item) => item.id === emojiSelect.value) || emojiOptions[0];
+  if (!emoji) {
+    emojiPreview.removeAttribute("src");
+    emojiPreview.alt = "尚未選擇表情符號";
+    return;
+  }
+
+  emojiPreview.src = emoji.image;
+  emojiPreview.alt = `${emoji.name}預覽`;
 }
 
 function setFormData(post) {
@@ -472,6 +486,13 @@ document.querySelector("#insertEmojiButton").addEventListener("click", () => {
   insertHtmlAtCursor(
     `<img class="emoji-sticker" src="${emoji.image}" alt="${emoji.alt}" width="120" height="120" loading="lazy" />`
   );
+});
+
+emojiSelect.addEventListener("change", updateEmojiPreview);
+
+emojiPreview.addEventListener("error", () => {
+  emojiPreview.removeAttribute("src");
+  emojiPreview.alt = "表情符號預覽載入失敗";
 });
 
 document.querySelector("#insertImageButton").addEventListener("click", () => {

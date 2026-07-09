@@ -40,7 +40,28 @@ button {
   cursor: pointer;
 }
 
+a.button-link {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 999px;
+  background: #4a2f23;
+  color: #fff8ea;
+  font-weight: 800;
+  padding: 0 18px;
+  text-decoration: none;
+}
+
 button.ghost {
+  border: 1px solid rgba(74, 47, 35, 0.25);
+  background: rgba(255, 248, 234, 0.72);
+  color: #4a2f23;
+}
+
+button.ghost,
+a.button-link.ghost {
   border: 1px solid rgba(74, 47, 35, 0.25);
   background: rgba(255, 248, 234, 0.72);
   color: #4a2f23;
@@ -303,6 +324,35 @@ form {
   font-size: 13px;
   font-weight: 800;
   padding: 0 34px 0 12px;
+}
+
+.emoji-preview {
+  display: inline-grid;
+  width: 56px;
+  height: 56px;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid rgba(74, 47, 35, 0.12);
+  border-radius: 16px;
+  background:
+    linear-gradient(45deg, rgba(74, 47, 35, 0.05) 25%, transparent 25%),
+    linear-gradient(-45deg, rgba(74, 47, 35, 0.05) 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, rgba(74, 47, 35, 0.05) 75%),
+    linear-gradient(-45deg, transparent 75%, rgba(74, 47, 35, 0.05) 75%),
+    rgba(255, 255, 255, 0.76);
+  background-position: 0 0, 0 8px, 8px -8px, -8px 0;
+  background-size: 16px 16px;
+}
+
+.emoji-preview img {
+  display: block;
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+}
+
+.emoji-preview img:not([src]) {
+  display: none;
 }
 
 .hidden-file {
