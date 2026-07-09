@@ -125,6 +125,23 @@ if (!cmsHtml.includes("查看流量") || !cmsHtml.includes("vercel.com/dashboard
   throw new Error("CMS analytics dashboard link is missing.");
 }
 
+if (
+  !server.includes("/api/analytics") ||
+  !server.includes("loadAnalyticsOverview") ||
+  !server.includes("analytics.local.json") ||
+  !server.includes("VERCEL_ANALYTICS_TOKEN")
+) {
+  throw new Error("CMS analytics API is missing.");
+}
+
+if (
+  !cmsHtml.includes("analyticsPanel") ||
+  !cmsHtml.includes("analyticsSummary") ||
+  !cmsHtml.includes("analyticsTable")
+) {
+  throw new Error("CMS analytics panel is missing.");
+}
+
 const cmsClient = fs.readFileSync(path.join(root, "cms", "public", "cms.js"), "utf8");
 
 if (!cmsClient.includes("/api/publish-site") || !cmsClient.includes("postUrl")) {
@@ -176,6 +193,17 @@ if (!globalsCss.includes(".article-body .youtube-embed") || !cmsCss.includes(".y
 
 if (!globalsCss.includes(".article-body img.emoji-sticker") || !cmsCss.includes("img.emoji-sticker")) {
   throw new Error("Emoji sticker responsive styles are missing.");
+}
+
+const analyticsDoc = fs.readFileSync(path.join(root, "docs", "analytics-views.md"), "utf8");
+const gitignore = fs.readFileSync(path.join(root, ".gitignore"), "utf8");
+
+if (!analyticsDoc.includes("cms/analytics.local.json") || !analyticsDoc.includes("每篇文章瀏覽數")) {
+  throw new Error("Analytics setup documentation is incomplete.");
+}
+
+if (!gitignore.includes("cms/analytics.local.json")) {
+  throw new Error("Local analytics token config must be ignored by git.");
 }
 
 const emojiDataPath = path.join(root, "data", "emojis.ts");

@@ -10,3 +10,4 @@ pnpm-debug.log*
 .pnpm-store
 *.tsbuildinfo
 dist
+cms/analytics.local.json

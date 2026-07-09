@@ -7,6 +7,7 @@ const { spawn } = require("child_process");
 const rootDir = path.resolve(__dirname, "..");
 const contentsPath = path.join(rootDir, "data", "contents.json");
 const authPath = path.join(__dirname, "auth.json");
+const analyticsConfigPath = path.join(__dirname, "analytics.local.json");
 const imagesDir = path.join(rootDir, "public", "images", "contents");
 const publicDir = path.join(__dirname, "public");
 const port = Number(process.env.CMS_PORT || 4173);
@@ -154,6 +155,252 @@ function getContentType(filePath) {
 
 function loadContents() {
   return JSON.parse(fs.readFileSync(contentsPath, "utf8"));
+}
+
+function loadAnalyticsConfig() {
+  const fileConfig = fs.existsSync(analyticsConfigPath)
+    ? JSON.parse(fs.readFileSync(analyticsConfigPath, "utf8"))
+    : {};
+  const token = process.env.VERCEL_ANALYTICS_TOKEN || fileConfig.token || "";
+  const projectId = process.env.VERCEL_PROJECT_ID || fileConfig.projectId || "";
+
+  return {
+    token,
+    projectId,
+    teamId: process.env.VERCEL_TEAM_ID || fileConfig.teamId || "",
+    days: Number(process.env.VERCEL_ANALYTICS_DAYS || fileConfig.days || 30),
+    domain: process.env.VERCEL_ANALYTICS_DOMAIN || fileConfig.domain || "www.wilddoghere.com",
+    countEndpoint:
+      process.env.VERCEL_ANALYTICS_COUNT_ENDPOINT ||
+      fileConfig.countEndpoint ||
+      "https://api.vercel.com/v1/web/analytics/page-views/count",
+    aggregateEndpoint:
+      process.env.VERCEL_ANALYTICS_AGGREGATE_ENDPOINT ||
+      fileConfig.aggregateEndpoint ||
+      "https://api.vercel.com/v1/web/analytics/page-views"
+  };
+}
+
+function getAnalyticsDateRange(days) {
+  const safeDays = Number.isFinite(days) && days > 0 ? Math.min(days, 365) : 30;
+  const to = new Date();
+  const from = new Date(to.getTime() - safeDays * 24 * 60 * 60 * 1000);
+
+  return {
+    days: safeDays,
+    from: from.toISOString(),
+    to: to.toISOString()
+  };
+}
+
+function createAnalyticsUrl(endpoint, config, params = {}) {
+  const url = new URL(endpoint);
+  const range = getAnalyticsDateRange(config.days);
+
+  url.searchParams.set("projectId", config.projectId);
+  url.searchParams.set("from", range.from);
+  url.searchParams.set("to", range.to);
+  url.searchParams.set("environment", "production");
+
+  if (config.teamId) {
+    url.searchParams.set("teamId", config.teamId);
+  }
+
+  for (const [key, value] of Object.entries(params)) {
+    if (value !== undefined && value !== null && value !== "") {
+      url.searchParams.set(key, String(value));
+    }
+  }
+
+  return url;
+}
+
+async function fetchVercelAnalytics(url, token) {
+  const response = await fetch(url, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json"
+    }
+  });
+  const text = await response.text();
+  let data = null;
+
+  try {
+    data = text ? JSON.parse(text) : null;
+  } catch {
+    data = { raw: text };
+  }
+
+  if (!response.ok) {
+    const message = data?.error?.message || data?.message || `Vercel Analytics API failed with HTTP ${response.status}.`;
+    throw new Error(message);
+  }
+
+  return data;
+}
+
+function pickMetricValue(value) {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value;
+  }
+
+  if (typeof value === "string" && value.trim() && Number.isFinite(Number(value))) {
+    return Number(value);
+  }
+
+  if (!value || typeof value !== "object") {
+    return 0;
+  }
+
+  const preferredKeys = [
+    "pageViews",
+    "views",
+    "visits",
+    "total",
+    "count",
+    "value",
+    "events"
+  ];
+
+  for (const key of preferredKeys) {
+    if (key in value) {
+      const metric = pickMetricValue(value[key]);
+      if (metric > 0) {
+        return metric;
+      }
+    }
+  }
+
+  for (const entry of Object.values(value)) {
+    const metric = pickMetricValue(entry);
+    if (metric > 0) {
+      return metric;
+    }
+  }
+
+  return 0;
+}
+
+function getPathFromAnalyticsRow(row) {
+  if (!row || typeof row !== "object") {
+    return "";
+  }
+
+  const candidates = [
+    row.path,
+    row.pathname,
+    row.requestPath,
+    row.route,
+    row.url,
+    row.page,
+    row.key,
+    row.name,
+    row.dimension
+  ];
+
+  for (const candidate of candidates) {
+    const pathValue = String(candidate || "").trim();
+    if (pathValue.startsWith("/posts/")) {
+      return pathValue.split("?")[0];
+    }
+
+    try {
+      const parsed = new URL(pathValue);
+      if (parsed.pathname.startsWith("/posts/")) {
+        return parsed.pathname;
+      }
+    } catch {
+      // Ignore non-URL values.
+    }
+  }
+
+  if (Array.isArray(row.group)) {
+    const pathValue = row.group.map(String).find((item) => item.startsWith("/posts/"));
+    return pathValue ? pathValue.split("?")[0] : "";
+  }
+
+  return "";
+}
+
+function normalizeAnalyticsRows(payload) {
+  if (Array.isArray(payload)) return payload;
+  if (Array.isArray(payload?.data)) return payload.data;
+  if (Array.isArray(payload?.rows)) return payload.rows;
+  if (Array.isArray(payload?.result)) return payload.result;
+  if (Array.isArray(payload?.results)) return payload.results;
+  if (Array.isArray(payload?.items)) return payload.items;
+  return [];
+}
+
+function getPostPath(post) {
+  return `/posts/${post.slug || post.id}`;
+}
+
+async function loadAnalyticsOverview() {
+  const config = loadAnalyticsConfig();
+  const range = getAnalyticsDateRange(config.days);
+  const posts = loadContents()
+    .filter((post) => post.status === "published")
+    .map((post) => ({
+      id: post.id,
+      title: post.title,
+      slug: post.slug,
+      path: getPostPath(post),
+      category: post.category,
+      date: post.date
+    }));
+
+  if (!config.token || !config.projectId) {
+    return {
+      ok: true,
+      configured: false,
+      days: range.days,
+      totalViews: 0,
+      posts: posts.map((post) => ({ ...post, views: 0 })),
+      setup: [
+        "請建立 cms/analytics.local.json。",
+        "把 cms/analytics.example.json 複製成 analytics.local.json。",
+        "填入 Vercel Project ID 與 Vercel Token 後重新整理 CMS。"
+      ]
+    };
+  }
+
+  const totalPayload = await fetchVercelAnalytics(
+    createAnalyticsUrl(config.countEndpoint, config),
+    config.token
+  );
+  const totalViews = pickMetricValue(totalPayload);
+  const aggregatePayload = await fetchVercelAnalytics(
+    createAnalyticsUrl(config.aggregateEndpoint, config, {
+      groupBy: "requestPath",
+      limit: 1000
+    }),
+    config.token
+  );
+  const viewsByPath = new Map();
+
+  for (const row of normalizeAnalyticsRows(aggregatePayload)) {
+    const pathValue = getPathFromAnalyticsRow(row);
+    if (pathValue) {
+      viewsByPath.set(pathValue, (viewsByPath.get(pathValue) || 0) + pickMetricValue(row));
+    }
+  }
+
+  return {
+    ok: true,
+    configured: true,
+    source: "Vercel Web Analytics",
+    days: range.days,
+    from: range.from,
+    to: range.to,
+    domain: config.domain,
+    totalViews,
+    posts: posts.map((post) => ({
+      ...post,
+      views: viewsByPath.get(post.path) || 0
+    })),
+    updatedAt: new Date().toISOString()
+  };
 }
 
 function saveContents(contents) {
@@ -691,6 +938,20 @@ const server = http.createServer(async (request, response) => {
     if (request.method === "GET" && url.pathname === "/api/posts") {
       if (!requireAuth(request, response)) return;
       sendJson(response, 200, loadContents());
+      return;
+    }
+
+    if (request.method === "GET" && url.pathname === "/api/analytics") {
+      if (!requireAuth(request, response)) return;
+      try {
+        sendJson(response, 200, await loadAnalyticsOverview());
+      } catch (error) {
+        sendJson(response, 502, {
+          ok: false,
+          configured: true,
+          error: error instanceof Error ? error.message : String(error)
+        });
+      }
       return;
     }
 

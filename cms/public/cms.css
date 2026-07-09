@@ -559,6 +559,93 @@ pre {
   white-space: pre-wrap;
 }
 
+.analytics-panel {
+  scroll-margin-top: 110px;
+}
+
+.analytics-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.analytics-card,
+.setup-list {
+  border: 1px solid rgba(74, 47, 35, 0.1);
+  border-radius: 18px;
+  background: #fff8ea;
+  padding: 16px;
+}
+
+.analytics-card span {
+  display: block;
+  color: rgba(74, 47, 35, 0.62);
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.analytics-card strong {
+  display: block;
+  margin-top: 8px;
+  color: #2f211b;
+  font-size: 28px;
+  line-height: 1.2;
+}
+
+.analytics-card p,
+.setup-list p {
+  margin: 8px 0 0;
+  color: rgba(74, 47, 35, 0.68);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.6;
+}
+
+.analytics-table {
+  margin-top: 16px;
+  overflow: auto;
+}
+
+.analytics-table table {
+  width: 100%;
+  min-width: 720px;
+  border-collapse: collapse;
+}
+
+.analytics-table th,
+.analytics-table td {
+  border-bottom: 1px solid rgba(74, 47, 35, 0.1);
+  padding: 13px 10px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.analytics-table th {
+  color: rgba(74, 47, 35, 0.58);
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+.analytics-table td strong,
+.analytics-table td span {
+  display: block;
+}
+
+.analytics-table td span {
+  margin-top: 4px;
+  color: rgba(74, 47, 35, 0.5);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.number-cell {
+  color: #d8793a;
+  font-size: 20px;
+  font-weight: 900;
+  text-align: right;
+}
+
 @media (max-width: 920px) {
   .topbar,
   .layout {
@@ -568,7 +655,8 @@ pre {
   .layout,
   .two,
   .three,
-  .image-tools {
+  .image-tools,
+  .analytics-summary {
     grid-template-columns: 1fr;
   }
 

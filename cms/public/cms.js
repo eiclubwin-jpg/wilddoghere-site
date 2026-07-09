@@ -51,6 +51,11 @@ const inlineImageInput = document.querySelector("#inlineImageInput");
 const watermarkEnabled = document.querySelector("#watermarkEnabled");
 const emojiSelect = document.querySelector("#emojiSelect");
 const emojiPreview = document.querySelector("#emojiPreview");
+const analyticsButton = document.querySelector("#analyticsButton");
+const refreshAnalyticsButton = document.querySelector("#refreshAnalyticsButton");
+const analyticsPanel = document.querySelector("#analyticsPanel");
+const analyticsSummary = document.querySelector("#analyticsSummary");
+const analyticsTable = document.querySelector("#analyticsTable");
 
 function loadImage(src) {
   return new Promise((resolve, reject) => {
@@ -413,6 +418,108 @@ async function loadAll() {
   setFormData(state.posts[0] || {});
 }
 
+function formatNumber(value) {
+  return new Intl.NumberFormat("zh-Hant-TW").format(Number(value || 0));
+}
+
+function renderAnalyticsSetup(result) {
+  analyticsSummary.innerHTML = `
+    <div class="analytics-card">
+      <span>尚未連接 Vercel Analytics</span>
+      <strong>需要本機設定</strong>
+      <p>CMS 需要 Vercel Token 與 Project ID，才能讀取正式網站流量。這個設定檔只放在本機，不會推上 GitHub。</p>
+    </div>
+  `;
+  analyticsTable.innerHTML = `
+    <div class="setup-list">
+      ${(result.setup || []).map((item) => `<p>${item}</p>`).join("")}
+      <p>範例檔：<code>cms/analytics.example.json</code></p>
+      <p>正式設定檔：<code>cms/analytics.local.json</code></p>
+    </div>
+  `;
+}
+
+function renderAnalytics(result) {
+  if (!result.configured) {
+    renderAnalyticsSetup(result);
+    return;
+  }
+
+  const posts = [...(result.posts || [])].sort((a, b) => Number(b.views || 0) - Number(a.views || 0));
+  const postRows = posts
+    .map(
+      (post) => `
+        <tr>
+          <td>
+            <strong>${post.title}</strong>
+            <span>${post.path}</span>
+          </td>
+          <td>${post.category || ""}</td>
+          <td>${post.date || ""}</td>
+          <td class="number-cell">${formatNumber(post.views)}</td>
+        </tr>
+      `
+    )
+    .join("");
+
+  analyticsSummary.innerHTML = `
+    <div class="analytics-card">
+      <span>全站總瀏覽數</span>
+      <strong>${formatNumber(result.totalViews)}</strong>
+      <p>統計區間：最近 ${result.days} 天</p>
+    </div>
+    <div class="analytics-card">
+      <span>已發布文章</span>
+      <strong>${formatNumber(posts.length)}</strong>
+      <p>資料來源：${result.source || "Vercel Web Analytics"}</p>
+    </div>
+    <div class="analytics-card">
+      <span>最後更新</span>
+      <strong>${result.updatedAt ? new Date(result.updatedAt).toLocaleString("zh-Hant-TW") : "剛剛"}</strong>
+      <p>${result.domain || "www.wilddoghere.com"}</p>
+    </div>
+  `;
+
+  analyticsTable.innerHTML = `
+    <table>
+      <thead>
+        <tr>
+          <th>文章</th>
+          <th>分類</th>
+          <th>日期</th>
+          <th>瀏覽數</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${postRows || `<tr><td colspan="4">目前沒有已發布文章。</td></tr>`}
+      </tbody>
+    </table>
+  `;
+}
+
+async function loadAnalytics() {
+  analyticsPanel.scrollIntoView({ behavior: "smooth", block: "start" });
+  analyticsSummary.innerHTML = `<div class="analytics-card"><span>讀取中</span><strong>正在更新流量...</strong></div>`;
+  analyticsTable.innerHTML = "";
+
+  const response = await fetch("/api/analytics");
+  const result = await readJson(response);
+
+  if (!result.ok) {
+    analyticsSummary.innerHTML = `
+      <div class="analytics-card">
+        <span>流量讀取失敗</span>
+        <strong>請檢查 Vercel 設定</strong>
+        <p>${result.error || "無法讀取 Vercel Analytics。"}</p>
+      </div>
+    `;
+    analyticsTable.innerHTML = "";
+    return;
+  }
+
+  renderAnalytics(result);
+}
+
 form.addEventListener("input", (event) => {
   if (event.target.name === "title" && !form.elements.slug.value) {
     form.elements.slug.value = slugify(event.target.value);
@@ -709,6 +816,9 @@ document.querySelector("#buildButton").addEventListener("click", async () => {
   const result = await readJson(response);
   buildOutput.textContent = result.output || result.error || "沒有輸出";
 });
+
+analyticsButton.addEventListener("click", loadAnalytics);
+refreshAnalyticsButton.addEventListener("click", loadAnalytics);
 
 document.querySelector("#logoutButton").addEventListener("click", async () => {
   await fetch("/api/logout", { method: "POST" });

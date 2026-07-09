@@ -14,13 +14,9 @@
       </div>
       <div class="topbar-actions">
         <button id="newPostButton" class="ghost">新增文章</button>
-        <a
-          class="button-link ghost"
-          href="https://vercel.com/dashboard"
-          target="_blank"
-          rel="noreferrer"
-        >
-          查看流量
+        <button id="analyticsButton" class="ghost" type="button">查看流量</button>
+        <a class="button-link ghost" href="https://vercel.com/dashboard" target="_blank" rel="noreferrer">
+          Vercel 後台
         </a>
         <button id="buildButton">檢查建置</button>
         <button id="logoutButton" class="ghost">登出</button>
@@ -191,6 +187,20 @@
             </div>
           </div>
           <pre id="buildOutput">尚未執行。</pre>
+        </section>
+
+        <section id="analyticsPanel" class="panel analytics-panel">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">Analytics</p>
+              <h2>流量總覽</h2>
+            </div>
+            <button id="refreshAnalyticsButton" class="ghost" type="button">重新整理流量</button>
+          </div>
+          <div id="analyticsSummary" class="analytics-summary">
+            點選「查看流量」後，CMS 會讀取正式網站的總瀏覽數與每篇文章瀏覽數。
+          </div>
+          <div id="analyticsTable" class="analytics-table"></div>
         </section>
       </section>
     </main>
