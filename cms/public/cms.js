@@ -7,7 +7,8 @@ const state = {
   },
   currentId: null,
   imageUpload: null,
-  watermarkLogo: null
+  watermarkLogo: null,
+  editorRange: null
 };
 
 const emojiOptions = [
@@ -49,8 +50,7 @@ const buildOutput = document.querySelector("#buildOutput");
 const bodyEditor = document.querySelector("#bodyEditor");
 const inlineImageInput = document.querySelector("#inlineImageInput");
 const watermarkEnabled = document.querySelector("#watermarkEnabled");
-const emojiSelect = document.querySelector("#emojiSelect");
-const emojiPreview = document.querySelector("#emojiPreview");
+const emojiGallery = document.querySelector("#emojiGallery");
 const analyticsButton = document.querySelector("#analyticsButton");
 const refreshAnalyticsButton = document.querySelector("#refreshAnalyticsButton");
 const analyticsPanel = document.querySelector("#analyticsPanel");
@@ -218,7 +218,24 @@ function getYouTubeVideoId(input) {
 
 function insertHtmlAtCursor(html) {
   bodyEditor.focus();
+  const selection = window.getSelection();
+
+  if (state.editorRange && selection) {
+    selection.removeAllRanges();
+    selection.addRange(state.editorRange);
+  } else if (selection) {
+    const range = document.createRange();
+    range.selectNodeContents(bodyEditor);
+    range.collapse(false);
+    selection.removeAllRanges();
+    selection.addRange(range);
+  }
+
   document.execCommand("insertHTML", false, html);
+  const updatedSelection = window.getSelection();
+  if (updatedSelection?.rangeCount) {
+    state.editorRange = updatedSelection.getRangeAt(0).cloneRange();
+  }
   form.elements.bodyHtml.value = bodyEditor.innerHTML.trim();
   updatePreview();
   saveState.textContent = "尚未儲存";
@@ -258,23 +275,54 @@ function setOptions(name, values) {
     .join("");
 }
 
-function setEmojiOptions() {
-  emojiSelect.innerHTML = emojiOptions
-    .map((emoji) => `<option value="${emoji.id}">${emoji.name}</option>`)
-    .join("");
-  updateEmojiPreview();
+function insertEmojiAtCursor(emoji) {
+  if (!emoji) return;
+  insertHtmlAtCursor(
+    `<img class="emoji-sticker" src="${emoji.image}" alt="${emoji.alt}" width="120" height="120" loading="lazy" />`
+  );
+  saveState.textContent = `已插入：${emoji.name}`;
 }
 
-function updateEmojiPreview() {
-  const emoji = emojiOptions.find((item) => item.id === emojiSelect.value) || emojiOptions[0];
-  if (!emoji) {
-    emojiPreview.removeAttribute("src");
-    emojiPreview.alt = "尚未選擇表情符號";
-    return;
-  }
+function renderEmojiGallery() {
+  emojiGallery.innerHTML = emojiOptions
+    .map(
+      (emoji) => `
+        <button
+          type="button"
+          class="emoji-tile"
+          data-emoji-id="${emoji.id}"
+          title="連點兩下插入 ${emoji.name}"
+          aria-label="連點兩下插入 ${emoji.name}"
+        >
+          <img src="${emoji.image}" alt="${emoji.alt}" width="72" height="72" loading="lazy" />
+          <span>${emoji.name}</span>
+        </button>
+      `
+    )
+    .join("");
 
-  emojiPreview.src = emoji.image;
-  emojiPreview.alt = `${emoji.name}預覽`;
+  emojiGallery.querySelectorAll(".emoji-tile").forEach((tile) => {
+    tile.addEventListener("click", () => {
+      emojiGallery.querySelectorAll(".emoji-tile").forEach((item) => item.classList.remove("selected"));
+      tile.classList.add("selected");
+    });
+    tile.addEventListener("dblclick", () => {
+      insertEmojiAtCursor(emojiOptions.find((emoji) => emoji.id === tile.dataset.emojiId));
+    });
+    tile.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        insertEmojiAtCursor(emojiOptions.find((emoji) => emoji.id === tile.dataset.emojiId));
+      }
+    });
+  });
+
+  emojiGallery.querySelectorAll("img").forEach((image) => {
+    image.addEventListener("error", () => {
+      image.closest(".emoji-tile")?.classList.add("image-missing");
+      image.remove();
+    });
+  });
 }
 
 function setFormData(post) {
@@ -501,23 +549,41 @@ async function loadAnalytics() {
   analyticsPanel.scrollIntoView({ behavior: "smooth", block: "start" });
   analyticsSummary.innerHTML = `<div class="analytics-card"><span>讀取中</span><strong>正在更新流量...</strong></div>`;
   analyticsTable.innerHTML = "";
+  analyticsButton.disabled = true;
+  refreshAnalyticsButton.disabled = true;
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 18000);
 
-  const response = await fetch("/api/analytics");
-  const result = await readJson(response);
+  try {
+    const response = await fetch("/api/analytics", { signal: controller.signal });
+    const result = await readJson(response);
 
-  if (!result.ok) {
+    if (!response.ok || !result.ok) {
+      throw new Error(result.error || `伺服器回應錯誤（${response.status}）`);
+    }
+
+    renderAnalytics(result);
+  } catch (error) {
+    const message = error instanceof Error && error.name === "AbortError"
+      ? "讀取超過 18 秒，已自動停止。請檢查網路、Vercel Token 與 Project ID 後再試一次。"
+      : error instanceof Error
+        ? error.message
+        : "無法讀取 Vercel Analytics。";
     analyticsSummary.innerHTML = `
       <div class="analytics-card">
         <span>流量讀取失敗</span>
-        <strong>請檢查 Vercel 設定</strong>
-        <p>${result.error || "無法讀取 Vercel Analytics。"}</p>
+        <strong>沒有卡住，已停止讀取</strong>
+        <p id="analyticsErrorMessage"></p>
       </div>
     `;
-    analyticsTable.innerHTML = "";
-    return;
+    document.querySelector("#analyticsErrorMessage").textContent = message;
+    analyticsTable.innerHTML = `<button type="button" id="analyticsRetryButton" class="ghost">重新讀取流量</button>`;
+    document.querySelector("#analyticsRetryButton").addEventListener("click", loadAnalytics);
+  } finally {
+    clearTimeout(timeout);
+    analyticsButton.disabled = false;
+    refreshAnalyticsButton.disabled = false;
   }
-
-  renderAnalytics(result);
 }
 
 form.addEventListener("input", (event) => {
@@ -541,6 +607,15 @@ bodyEditor.addEventListener("input", () => {
   form.elements.bodyHtml.value = bodyEditor.innerHTML.trim();
   updatePreview();
   saveState.textContent = "尚未儲存";
+});
+
+document.addEventListener("selectionchange", () => {
+  const selection = window.getSelection();
+  if (!selection?.rangeCount) return;
+  const range = selection.getRangeAt(0);
+  if (bodyEditor.contains(range.commonAncestorContainer)) {
+    state.editorRange = range.cloneRange();
+  }
 });
 
 document.querySelectorAll(".toolbar [data-command]").forEach((button) => {
@@ -584,22 +659,6 @@ document.querySelector("#insertYoutubeButton").addEventListener("click", () => {
     </div>
     <p><br></p>
   `);
-});
-
-document.querySelector("#insertEmojiButton").addEventListener("click", () => {
-  const emoji = emojiOptions.find((item) => item.id === emojiSelect.value);
-  if (!emoji) return;
-
-  insertHtmlAtCursor(
-    `<img class="emoji-sticker" src="${emoji.image}" alt="${emoji.alt}" width="120" height="120" loading="lazy" />`
-  );
-});
-
-emojiSelect.addEventListener("change", updateEmojiPreview);
-
-emojiPreview.addEventListener("error", () => {
-  emojiPreview.removeAttribute("src");
-  emojiPreview.alt = "表情符號預覽載入失敗";
 });
 
 document.querySelector("#insertImageButton").addEventListener("click", () => {
@@ -825,7 +884,7 @@ document.querySelector("#logoutButton").addEventListener("click", async () => {
   window.location.href = "/login";
 });
 
-setEmojiOptions();
+renderEmojiGallery();
 
 loadAll().catch((error) => {
   buildOutput.textContent = error.message;

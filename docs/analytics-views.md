@@ -60,6 +60,8 @@ cms/analytics.local.json
 
 CMS 只讀取正式站流量，不會計算本機 `localhost`。
 
+若 Vercel 或網路沒有回應，CMS 會在 18 秒內自動停止讀取，顯示錯誤原因與「重新讀取流量」按鈕，不會一直停在「正在更新流量」。
+
 ## 4. 如果還沒設定 token
 
 CMS 不會壞掉，會顯示設定提示。

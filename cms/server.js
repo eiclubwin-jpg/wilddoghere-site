@@ -216,12 +216,27 @@ function createAnalyticsUrl(endpoint, config, params = {}) {
 }
 
 async function fetchVercelAnalytics(url, token) {
-  const response = await fetch(url, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json"
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 12000);
+  let response;
+
+  try {
+    response = await fetch(url, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json"
+      },
+      signal: controller.signal
+    });
+  } catch (error) {
+    if (error instanceof Error && error.name === "AbortError") {
+      throw new Error("連線 Vercel Analytics 逾時，請檢查網路後重試。");
     }
-  });
+    throw new Error(`無法連線 Vercel Analytics：${error instanceof Error ? error.message : String(error)}`);
+  } finally {
+    clearTimeout(timeout);
+  }
+
   const text = await response.text();
   let data = null;
 

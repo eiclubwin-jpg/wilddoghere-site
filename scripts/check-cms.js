@@ -153,14 +153,24 @@ if (!cmsClient.includes("getYouTubeVideoId") || !cmsHtml.includes("insertYoutube
 }
 
 if (
-  !cmsHtml.includes("emojiSelect") ||
-  !cmsHtml.includes("emojiPreview") ||
-  !cmsHtml.includes("insertEmojiButton") ||
+  !cmsHtml.includes("emojiGallery") ||
+  !cmsHtml.includes("連點圖片兩下") ||
   !cmsClient.includes("emojiOptions") ||
   !cmsClient.includes("emoji-sticker") ||
-  !cmsClient.includes("updateEmojiPreview")
+  !cmsClient.includes("renderEmojiGallery") ||
+  !cmsClient.includes("insertEmojiAtCursor") ||
+  !cmsClient.includes('addEventListener("dblclick"')
 ) {
-  throw new Error("CMS emoji sticker workflow or preview is missing.");
+  throw new Error("CMS visual emoji gallery or double-click insertion is missing.");
+}
+
+if (
+  !server.includes("AbortController") ||
+  !server.includes("連線 Vercel Analytics 逾時") ||
+  !cmsClient.includes("analyticsRetryButton") ||
+  !cmsClient.includes("沒有卡住，已停止讀取")
+) {
+  throw new Error("CMS analytics timeout and retry handling is missing.");
 }
 
 if (!cmsClient.includes("正式網站尚未更新") || !cmsClient.includes("要現在一鍵發布到正式網站嗎")) {
