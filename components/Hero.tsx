@@ -11,7 +11,7 @@ export function Hero() {
 
   return (
     <section className="paper-texture relative bg-cream">
-      <div className="mx-auto grid min-h-[calc(100vh-77px)] max-w-7xl items-center gap-10 px-5 py-14 sm:px-8 lg:grid-cols-[0.45fr_0.55fr] lg:gap-14 lg:py-16">
+      <div className="mx-auto grid min-h-[42rem] max-w-7xl items-center gap-10 px-5 py-14 sm:px-8 lg:grid-cols-[0.45fr_0.55fr] lg:gap-14 lg:py-16">
         <div className="relative z-10">
           <p className="mb-5 w-fit rounded-full bg-orange-100 px-4 py-2 text-sm font-semibold leading-6 text-clay shadow-sm">
             家族生活 x 親子開箱 x 3C開箱 x 玩具收藏 x 美食旅行
@@ -31,15 +31,13 @@ export function Hero() {
           </p>
           <div className="mt-9 flex flex-col gap-3 sm:flex-row">
             <CTAButton href="#latest-posts">看最新文章</CTAButton>
-            <CTAButton href="#about" variant="secondary">
+            <CTAButton href="/about" variant="secondary">
               認識野狗軍團
             </CTAButton>
           </div>
         </div>
 
         <div className="relative">
-          <div className="absolute -left-4 -top-4 h-24 w-24 rounded-full bg-butter/60 blur-sm" />
-          <div className="absolute -bottom-5 -right-4 h-28 w-28 rounded-full bg-orange-100/70 blur-sm" />
           <div className="hand-drawn relative overflow-hidden bg-white/75 p-3 shadow-soft">
             <div className="relative aspect-[16/10] max-h-[44vh] min-h-64 overflow-hidden rounded-[1.35rem] bg-butter sm:max-h-none lg:aspect-[4/3]">
               <div className="absolute inset-4 rounded-[1rem] border border-dashed border-cocoa/20 bg-cream/55" />
@@ -55,6 +53,9 @@ export function Hero() {
                 <img
                   src="/images/hero/wilddog-family-hero.png"
                   alt={heroImageAlt}
+                  width={1536}
+                  height={1024}
+                  fetchPriority="high"
                   className="absolute inset-0 h-full w-full object-cover"
                   onError={() => setImageReady(false)}
                 />

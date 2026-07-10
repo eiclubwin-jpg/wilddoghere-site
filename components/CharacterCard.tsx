@@ -22,8 +22,11 @@ export function CharacterCard({ character }: CharacterCardProps) {
         <img
           src={character.image}
           alt={character.imageAlt}
+          width={720}
+          height={540}
           className="absolute inset-0 h-full w-full object-cover"
           loading="lazy"
+          decoding="async"
           onError={(event) => {
             event.currentTarget.style.display = "none";
           }}

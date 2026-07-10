@@ -487,6 +487,10 @@ function normalizePost(post) {
   };
 }
 
+function hasPublishableContent(post) {
+  return Boolean(post.bodyHtml?.trim()) || /^https?:\/\//.test(String(post.link || ""));
+}
+
 function saveImage(payload) {
   if (!payload || !payload.dataUrl || !payload.filename) {
     return null;
@@ -975,6 +979,15 @@ const server = http.createServer(async (request, response) => {
       const body = await readJsonBody(request);
       const contents = loadContents();
       const post = normalizePost(body.post || {});
+
+      if (post.status === "published" && !hasPublishableContent(post)) {
+        sendJson(response, 400, {
+          ok: false,
+          error: "上架前請先填入文章內文，或提供可開啟的正式外部文章連結。"
+        });
+        return;
+      }
+
       const imagePath = saveImage(body.image);
 
       if (imagePath) {

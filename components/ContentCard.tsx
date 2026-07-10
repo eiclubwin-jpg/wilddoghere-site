@@ -1,6 +1,7 @@
 "use client";
 
 import type { ContentItem } from "@/data/contents";
+import { getContentUrl, getPostDescription } from "@/lib/content";
 
 type ContentCardProps = {
   content: ContentItem;
@@ -8,13 +9,8 @@ type ContentCardProps = {
 };
 
 export function ContentCard({ content, variant = "feature" }: ContentCardProps) {
-  const normalizedLink = content.link.replace(/^#(?=https?:\/\/)/, "");
-  const hasCmsBody = Boolean(content.bodyHtml?.trim());
-  const contentUrl =
-    hasCmsBody || !normalizedLink || normalizedLink === "#"
-      ? `/posts/${content.slug}`
-      : normalizedLink;
-  const isPublished = content.status === "published";
+  const contentUrl = getContentUrl(content);
+  const isPublished = content.status === "published" && contentUrl !== "#";
   const isExternalLink = contentUrl.startsWith("http");
   const dateLabel = new Intl.DateTimeFormat("zh-TW", {
     year: "numeric",
@@ -22,6 +18,7 @@ export function ContentCard({ content, variant = "feature" }: ContentCardProps) 
     day: "2-digit"
   }).format(new Date(content.date));
   const isList = variant === "list";
+  const description = getPostDescription(content);
 
   return (
     <article
@@ -29,7 +26,11 @@ export function ContentCard({ content, variant = "feature" }: ContentCardProps) 
         isList ? "md:grid-cols-[minmax(13rem,38%)_1fr]" : ""
       }`}
     >
-      <div
+      <a
+        href={isPublished ? contentUrl : undefined}
+        target={isPublished && isExternalLink ? "_blank" : undefined}
+        rel={isPublished && isExternalLink ? "noreferrer" : undefined}
+        aria-label={`閱讀：${content.title}`}
         className={`relative flex items-center justify-center overflow-hidden bg-linen ${
           isList ? "aspect-[16/10] md:aspect-auto md:min-h-full" : "aspect-[16/10]"
         }`}
@@ -48,11 +49,13 @@ export function ContentCard({ content, variant = "feature" }: ContentCardProps) 
           alt={content.imageAlt}
           className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
           loading="lazy"
+          decoding="async"
+          referrerPolicy="no-referrer"
           onError={(event) => {
             event.currentTarget.style.display = "none";
           }}
         />
-      </div>
+      </a>
       <div className="flex min-w-0 flex-1 flex-col p-6">
         <div className="mb-4 flex flex-wrap items-center gap-2">
           <span className="w-fit rounded-full bg-orange-100 px-3 py-1 text-xs font-semibold text-clay">
@@ -63,14 +66,14 @@ export function ContentCard({ content, variant = "feature" }: ContentCardProps) 
           </span>
         </div>
         <h3 className={`${isList ? "text-xl" : "text-2xl"} font-bold leading-tight text-coffee`}>
-          {content.title}
+          {isPublished ? <a href={contentUrl} target={isExternalLink ? "_blank" : undefined} rel={isExternalLink ? "noreferrer" : undefined} className="transition hover:text-clay">{content.title}</a> : content.title}
         </h3>
         <div className="mt-3 grid gap-2 text-sm font-semibold text-cocoa/60">
           <p>敘事者：{content.narrator}</p>
           <p>平台：{content.platform}</p>
         </div>
         <p className="mt-3 flex-1 text-base leading-7 text-cocoa/75">
-          {content.excerpt}
+          {description}
         </p>
         <div className="mt-5 flex flex-wrap gap-2">
           {content.tags.map((tag) => (
@@ -83,9 +86,7 @@ export function ContentCard({ content, variant = "feature" }: ContentCardProps) 
           ))}
         </div>
         <div className="mt-5 flex items-center justify-between gap-3">
-          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-cocoa/45">
-            {content.status === "published" ? "PUBLISHED" : "內容準備中"}
-          </p>
+          <p className="text-xs font-semibold text-cocoa/45">{content.tags.length > 0 ? content.tags.slice(0, 2).join("・") : content.category}</p>
           {isPublished ? (
             <a
               href={contentUrl}

@@ -30,7 +30,27 @@ export const metadata: Metadata = {
     type: "website",
     locale: "zh_TW",
     url: "https://www.wilddoghere.com",
-    siteName: "WildDogHere"
+    siteName: "WildDogHere",
+    images: [
+      {
+        url: "/images/hero/wilddog-family-hero.png",
+        width: 1536,
+        height: 1024,
+        alt: "WildDogHere 野狗軍團全家主視覺"
+      }
+    ]
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "WildDogHere｜野狗軍團出沒中",
+    description: "家族生活、親子開箱、玩具收藏、美食旅行與生活實測部落格。",
+    images: ["/images/hero/wilddog-family-hero.png"]
+  },
+  alternates: {
+    canonical: "/",
+    types: {
+      "application/rss+xml": "/feed.xml"
+    }
   }
 };
 

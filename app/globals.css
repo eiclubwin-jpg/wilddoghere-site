@@ -62,6 +62,7 @@ body {
   color: #2f211b;
   line-height: 1.35;
   margin: 1.8em 0 0.6em;
+  scroll-margin-top: 7rem;
 }
 
 .article-body p,
@@ -87,6 +88,23 @@ body {
   height: auto;
   margin: 1.5em auto;
   max-width: 100%;
+}
+
+.article-body > a:has(img) {
+  display: block;
+}
+
+.article-body blockquote {
+  border-left: 3px solid rgba(216, 121, 58, 0.55);
+  background: rgba(247, 236, 216, 0.72);
+  margin: 1.5em 0;
+  padding: 1em 1.25em;
+}
+
+.article-body hr {
+  border: 0;
+  border-top: 1px solid rgba(74, 47, 35, 0.14);
+  margin: 2.2em 0;
 }
 
 .article-body img.emoji-sticker {

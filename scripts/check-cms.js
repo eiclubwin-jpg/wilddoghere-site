@@ -14,6 +14,17 @@ const requiredFiles = [
   "data/categories.ts",
   "app/categories/page.tsx",
   "app/categories/[slug]/page.tsx",
+  "app/posts/[slug]/page.tsx",
+  "app/about/page.tsx",
+  "app/collaboration/page.tsx",
+  "app/sitemap.ts",
+  "app/robots.ts",
+  "app/feed.xml/route.ts",
+  "components/SiteHeader.tsx",
+  "components/SiteFooter.tsx",
+  "components/SearchPosts.tsx",
+  "lib/content.ts",
+  "docs/seo-growth-guide.md",
   "open-wilddog-cms.command",
   "scripts/set-cms-password.js",
   "scripts/package-windows-cms.js",
@@ -77,6 +88,7 @@ for (const post of posts) {
 }
 
 const page = fs.readFileSync(path.join(root, "app", "page.tsx"), "utf8");
+const siteHeader = fs.readFileSync(path.join(root, "components", "SiteHeader.tsx"), "utf8");
 const requiredAnchors = [
   "/categories/parenting",
   "/categories/toys",
@@ -86,13 +98,25 @@ const requiredAnchors = [
 ];
 
 for (const anchor of requiredAnchors) {
-  if (!page.includes(anchor)) {
+  if (!siteHeader.includes(anchor)) {
     throw new Error(`Missing category link: ${anchor}`);
   }
 }
 
+if (page.includes("Category Index") || page.includes("先用目前代表內容") || page.includes("依文章日期排序")) {
+  throw new Error("Homepage still contains duplicated category index or internal maintenance copy.");
+}
+
+if (!page.includes("SearchPosts") || !page.includes("getPublishedContents")) {
+  throw new Error("Homepage search or published-only filtering is missing.");
+}
+
 if (!server.includes("/api/upload-image")) {
   throw new Error("CMS image upload API is missing.");
+}
+
+if (!server.includes("hasPublishableContent") || !server.includes("上架前請先填入文章內文")) {
+  throw new Error("CMS must prevent published articles from creating broken public links.");
 }
 
 if (!server.includes("/api/login") || !server.includes("requireAuth")) {
@@ -192,9 +216,27 @@ if (
 const globalsCss = fs.readFileSync(path.join(root, "app", "globals.css"), "utf8");
 const cmsCss = fs.readFileSync(path.join(root, "cms", "public", "cms.css"), "utf8");
 const appLayout = fs.readFileSync(path.join(root, "app", "layout.tsx"), "utf8");
+const postPage = fs.readFileSync(path.join(root, "app", "posts", "[slug]", "page.tsx"), "utf8");
+const sitemapFile = fs.readFileSync(path.join(root, "app", "sitemap.ts"), "utf8");
+const robotsFile = fs.readFileSync(path.join(root, "app", "robots.ts"), "utf8");
+const feedFile = fs.readFileSync(path.join(root, "app", "feed.xml", "route.ts"), "utf8");
 
 if (!appLayout.includes("/_vercel/insights/script.js")) {
   throw new Error("Vercel Analytics tracking script is missing.");
+}
+
+if (
+  !postPage.includes('"@type": "BlogPosting"') ||
+  !postPage.includes("alternates: { canonical }") ||
+  !postPage.includes("getRelatedContents") ||
+  !postPage.includes("本文目錄") ||
+  !postPage.includes("ShareButtons")
+) {
+  throw new Error("Article SEO, table of contents, sharing or related posts are incomplete.");
+}
+
+if (!sitemapFile.includes("getPublishedContents") || !robotsFile.includes("sitemap.xml") || !feedFile.includes("application/rss+xml")) {
+  throw new Error("Sitemap, robots or RSS output is incomplete.");
 }
 
 if (!globalsCss.includes(".article-body .youtube-embed") || !cmsCss.includes(".youtube-embed")) {

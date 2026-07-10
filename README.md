@@ -195,6 +195,7 @@ WINDOWS-CHANGE-ACCOUNT.cmd
 - `docs/local-cms-guide.md`：本機 CMS 開啟、編輯、預覽與上架流程
 - `docs/image-strategy.md`：圖片命名、存放位置、尺寸與壓縮策略
 - `docs/blog-roadmap.md`：未來文章系統規劃，不導入 CMS 的前提下逐步擴充
+- `docs/seo-growth-guide.md`：Search Console、文章上架與每月 SEO 維護清單
 
 ## 部署到 Vercel
 
