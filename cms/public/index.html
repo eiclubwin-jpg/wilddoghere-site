@@ -16,7 +16,7 @@
         <button id="newPostButton" class="ghost">新增文章</button>
         <button id="analyticsButton" class="ghost" type="button">查看流量</button>
         <a class="button-link ghost" href="https://vercel.com/dashboard" target="_blank" rel="noreferrer">
-          Vercel 後台
+          Vercel 流量後台
         </a>
         <button id="buildButton">檢查建置</button>
         <button id="logoutButton" class="ghost">登出</button>
@@ -195,10 +195,15 @@
               <p class="eyebrow">Analytics</p>
               <h2>流量總覽</h2>
             </div>
-            <button id="refreshAnalyticsButton" class="ghost" type="button">重新整理流量</button>
+            <div class="analytics-actions">
+              <a class="button-link ghost" href="https://vercel.com/dashboard" target="_blank" rel="noreferrer">開啟 Vercel Analytics</a>
+              <button id="analyticsImportButton" class="ghost" type="button">匯入 Vercel CSV</button>
+              <button id="refreshAnalyticsButton" class="ghost" type="button">重新整理流量</button>
+              <input id="analyticsCsvInput" class="hidden-file" type="file" accept=".csv,text/csv" />
+            </div>
           </div>
           <div id="analyticsSummary" class="analytics-summary">
-            點選「查看流量」後，CMS 會讀取正式網站的總瀏覽數與每篇文章瀏覽數。
+            點選「查看流量」後，可查看網站總瀏覽數與每篇文章瀏覽數；第一次使用請先匯入 Vercel Pages CSV。
           </div>
           <div id="analyticsTable" class="analytics-table"></div>
         </section>

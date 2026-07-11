@@ -11,3 +11,4 @@ pnpm-debug.log*
 *.tsbuildinfo
 dist
 cms/analytics.local.json
+cms/analytics.snapshot.json

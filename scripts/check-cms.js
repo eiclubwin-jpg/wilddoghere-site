@@ -2,6 +2,7 @@ const fs = require("fs");
 const path = require("path");
 
 const root = path.resolve(__dirname, "..");
+const { parseAnalyticsCsv } = require(path.join(root, "cms", "server.js"));
 const requiredFiles = [
   "cms/server.js",
   "cms/auth.json",
@@ -25,6 +26,7 @@ const requiredFiles = [
   "components/SearchPosts.tsx",
   "lib/content.ts",
   "docs/seo-growth-guide.md",
+  "docs/analytics-views.md",
   "open-wilddog-cms.command",
   "scripts/set-cms-password.js",
   "scripts/package-windows-cms.js",
@@ -151,7 +153,10 @@ if (!cmsHtml.includes("查看流量") || !cmsHtml.includes("vercel.com/dashboard
 
 if (
   !server.includes("/api/analytics") ||
+  !server.includes("/api/analytics/import") ||
   !server.includes("loadAnalyticsOverview") ||
+  !server.includes("analytics.snapshot.json") ||
+  !server.includes("parseAnalyticsCsv") ||
   !server.includes("analytics.local.json") ||
   !server.includes("VERCEL_ANALYTICS_TOKEN")
 ) {
@@ -161,7 +166,10 @@ if (
 if (
   !cmsHtml.includes("analyticsPanel") ||
   !cmsHtml.includes("analyticsSummary") ||
-  !cmsHtml.includes("analyticsTable")
+  !cmsHtml.includes("analyticsTable") ||
+  !cmsHtml.includes("analyticsImportButton") ||
+  !cmsHtml.includes("analyticsCsvInput") ||
+  !cmsHtml.includes("匯入 Vercel CSV")
 ) {
   throw new Error("CMS analytics panel is missing.");
 }
@@ -250,12 +258,25 @@ if (!globalsCss.includes(".article-body img.emoji-sticker") || !cmsCss.includes(
 const analyticsDoc = fs.readFileSync(path.join(root, "docs", "analytics-views.md"), "utf8");
 const gitignore = fs.readFileSync(path.join(root, ".gitignore"), "utf8");
 
-if (!analyticsDoc.includes("cms/analytics.local.json") || !analyticsDoc.includes("每篇文章瀏覽數")) {
+if (!analyticsDoc.includes("cms/analytics.snapshot.json") || !analyticsDoc.includes("每篇文章瀏覽數") || !analyticsDoc.includes("Export as CSV")) {
   throw new Error("Analytics setup documentation is incomplete.");
 }
 
-if (!gitignore.includes("cms/analytics.local.json")) {
-  throw new Error("Local analytics token config must be ignored by git.");
+if (!gitignore.includes("cms/analytics.local.json") || !gitignore.includes("cms/analytics.snapshot.json")) {
+  throw new Error("Local analytics configs must be ignored by git.");
+}
+
+const analyticsCsvResult = parseAnalyticsCsv(
+  "Page,Page Views\n/,12\n/posts/example-post,7\nhttps://www.wilddoghere.com/posts/second-post?source=test,3\n",
+  "sample.csv"
+);
+
+if (
+  analyticsCsvResult.totalViews !== 22 ||
+  analyticsCsvResult.viewsByPath["/posts/example-post"] !== 7 ||
+  analyticsCsvResult.viewsByPath["/posts/second-post"] !== 3
+) {
+  throw new Error("Vercel Analytics CSV parsing or article path matching failed.");
 }
 
 const emojiDataPath = path.join(root, "data", "emojis.ts");

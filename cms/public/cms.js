@@ -53,6 +53,8 @@ const watermarkEnabled = document.querySelector("#watermarkEnabled");
 const emojiGallery = document.querySelector("#emojiGallery");
 const analyticsButton = document.querySelector("#analyticsButton");
 const refreshAnalyticsButton = document.querySelector("#refreshAnalyticsButton");
+const analyticsImportButton = document.querySelector("#analyticsImportButton");
+const analyticsCsvInput = document.querySelector("#analyticsCsvInput");
 const analyticsPanel = document.querySelector("#analyticsPanel");
 const analyticsSummary = document.querySelector("#analyticsSummary");
 const analyticsTable = document.querySelector("#analyticsTable");
@@ -473,16 +475,15 @@ function formatNumber(value) {
 function renderAnalyticsSetup(result) {
   analyticsSummary.innerHTML = `
     <div class="analytics-card">
-      <span>尚未連接 Vercel Analytics</span>
-      <strong>需要本機設定</strong>
-      <p>CMS 需要 Vercel Token 與 Project ID，才能讀取正式網站流量。這個設定檔只放在本機，不會推上 GitHub。</p>
+      <span>尚未匯入流量</span>
+      <strong>請匯入 Vercel CSV</strong>
+      <p>先在 Vercel Analytics 的 Pages 面板匯出 CSV，再按上方「匯入 Vercel CSV」。資料只保存在這台電腦。</p>
     </div>
   `;
   analyticsTable.innerHTML = `
     <div class="setup-list">
       ${(result.setup || []).map((item) => `<p>${item}</p>`).join("")}
-      <p>範例檔：<code>cms/analytics.example.json</code></p>
-      <p>正式設定檔：<code>cms/analytics.local.json</code></p>
+      <p>匯入後會自動計算網站總 views，並依 <code>/posts/文章網址</code> 對應各篇文章 views。</p>
     </div>
   `;
 }
@@ -514,7 +515,7 @@ function renderAnalytics(result) {
     <div class="analytics-card">
       <span>全站總瀏覽數</span>
       <strong>${formatNumber(result.totalViews)}</strong>
-      <p>統計區間：最近 ${result.days} 天</p>
+      <p>統計區間：${result.rangeLabel || `最近 ${result.days} 天`}</p>
     </div>
     <div class="analytics-card">
       <span>已發布文章</span>
@@ -524,7 +525,7 @@ function renderAnalytics(result) {
     <div class="analytics-card">
       <span>最後更新</span>
       <strong>${result.updatedAt ? new Date(result.updatedAt).toLocaleString("zh-Hant-TW") : "剛剛"}</strong>
-      <p>${result.domain || "www.wilddoghere.com"}</p>
+      <p>${result.fileName || result.domain || "www.wilddoghere.com"}</p>
     </div>
   `;
 
@@ -583,6 +584,40 @@ async function loadAnalytics() {
     clearTimeout(timeout);
     analyticsButton.disabled = false;
     refreshAnalyticsButton.disabled = false;
+  }
+}
+
+async function importAnalyticsCsv(file) {
+  if (!file) return;
+  analyticsPanel.scrollIntoView({ behavior: "smooth", block: "start" });
+  analyticsSummary.innerHTML = `<div class="analytics-card"><span>匯入中</span><strong>正在整理流量資料...</strong></div>`;
+  analyticsTable.innerHTML = "";
+  analyticsImportButton.disabled = true;
+
+  try {
+    const csv = await file.text();
+    const response = await fetch("/api/analytics/import", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ csv, fileName: file.name })
+    });
+    const result = await readJson(response);
+    if (!response.ok || !result.ok) {
+      throw new Error(result.error || "無法匯入 Vercel CSV。");
+    }
+    renderAnalytics(result);
+  } catch (error) {
+    analyticsSummary.innerHTML = `
+      <div class="analytics-card">
+        <span>匯入失敗</span>
+        <strong>請重新選擇 CSV</strong>
+        <p id="analyticsImportError"></p>
+      </div>
+    `;
+    document.querySelector("#analyticsImportError").textContent = error instanceof Error ? error.message : String(error);
+  } finally {
+    analyticsImportButton.disabled = false;
+    analyticsCsvInput.value = "";
   }
 }
 
@@ -878,6 +913,8 @@ document.querySelector("#buildButton").addEventListener("click", async () => {
 
 analyticsButton.addEventListener("click", loadAnalytics);
 refreshAnalyticsButton.addEventListener("click", loadAnalytics);
+analyticsImportButton.addEventListener("click", () => analyticsCsvInput.click());
+analyticsCsvInput.addEventListener("change", () => importAnalyticsCsv(analyticsCsvInput.files?.[0]));
 
 document.querySelector("#logoutButton").addEventListener("click", async () => {
   await fetch("/api/logout", { method: "POST" });

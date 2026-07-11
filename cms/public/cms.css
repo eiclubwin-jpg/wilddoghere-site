@@ -597,6 +597,13 @@ pre {
   scroll-margin-top: 110px;
 }
 
+.analytics-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
 .analytics-summary {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -692,6 +699,15 @@ pre {
   .image-tools,
   .analytics-summary {
     grid-template-columns: 1fr;
+  }
+
+  .analytics-actions {
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  .analytics-actions > *:not(.hidden-file) {
+    flex: 1 1 180px;
   }
 
   .sidebar {

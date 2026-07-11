@@ -196,6 +196,7 @@ WINDOWS-CHANGE-ACCOUNT.cmd
 - `docs/image-strategy.md`：圖片命名、存放位置、尺寸與壓縮策略
 - `docs/blog-roadmap.md`：未來文章系統規劃，不導入 CMS 的前提下逐步擴充
 - `docs/seo-growth-guide.md`：Search Console、文章上架與每月 SEO 維護清單
+- `docs/analytics-views.md`：網站總瀏覽數與逐篇文章 views 的 Vercel CSV 匯入方式
 
 ## 部署到 Vercel
 

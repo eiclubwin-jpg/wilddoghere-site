@@ -8,6 +8,7 @@ const rootDir = path.resolve(__dirname, "..");
 const contentsPath = path.join(rootDir, "data", "contents.json");
 const authPath = path.join(__dirname, "auth.json");
 const analyticsConfigPath = path.join(__dirname, "analytics.local.json");
+const analyticsSnapshotPath = path.join(__dirname, "analytics.snapshot.json");
 const imagesDir = path.join(rootDir, "public", "images", "contents");
 const publicDir = path.join(__dirname, "public");
 const port = Number(process.env.CMS_PORT || 4173);
@@ -351,6 +352,117 @@ function getPostPath(post) {
   return `/posts/${post.slug || post.id}`;
 }
 
+function parseCsvRows(csvText) {
+  const rows = [];
+  let row = [];
+  let value = "";
+  let quoted = false;
+
+  for (let index = 0; index < csvText.length; index += 1) {
+    const character = csvText[index];
+    const next = csvText[index + 1];
+
+    if (character === '"' && quoted && next === '"') {
+      value += '"';
+      index += 1;
+    } else if (character === '"') {
+      quoted = !quoted;
+    } else if (character === "," && !quoted) {
+      row.push(value);
+      value = "";
+    } else if ((character === "\n" || character === "\r") && !quoted) {
+      if (character === "\r" && next === "\n") index += 1;
+      row.push(value);
+      if (row.some((cell) => String(cell).trim())) rows.push(row);
+      row = [];
+      value = "";
+    } else {
+      value += character;
+    }
+  }
+
+  row.push(value);
+  if (row.some((cell) => String(cell).trim())) rows.push(row);
+  return rows;
+}
+
+function normalizeCsvHeader(value) {
+  return String(value || "")
+    .replace(/^\uFEFF/, "")
+    .trim()
+    .toLowerCase()
+    .replace(/[\s_-]+/g, "");
+}
+
+function normalizeAnalyticsPath(value) {
+  const raw = String(value || "").trim();
+  if (!raw) return "";
+  if (raw.startsWith("/")) return raw.split("?")[0].split("#")[0];
+
+  try {
+    return new URL(raw.startsWith("http") ? raw : `https://${raw}`).pathname || "/";
+  } catch {
+    const pathValue = raw.split("?")[0].split("#")[0];
+    return pathValue.startsWith("/") ? pathValue : `/${pathValue}`;
+  }
+}
+
+function parseAnalyticsCsv(csvText, fileName = "vercel-analytics.csv") {
+  const rows = parseCsvRows(String(csvText || ""));
+  if (rows.length < 2) {
+    throw new Error("CSV 沒有可讀取的流量資料。");
+  }
+
+  const headers = rows[0].map(normalizeCsvHeader);
+  const pathIndex = headers.findIndex((header) =>
+    ["page", "pages", "path", "pathname", "url", "route"].includes(header)
+  );
+  const viewsIndex = headers.findIndex((header) =>
+    ["pageviews", "views", "view", "count", "瀏覽數", "網頁瀏覽量"].includes(header)
+  );
+
+  if (pathIndex < 0 || viewsIndex < 0) {
+    throw new Error("找不到 Page（頁面）或 Page Views（瀏覽數）欄位，請從 Vercel Analytics 的 Pages 面板匯出 CSV。");
+  }
+
+  const viewsByPath = new Map();
+  for (const row of rows.slice(1)) {
+    const pathValue = normalizeAnalyticsPath(row[pathIndex]);
+    const views = Number(String(row[viewsIndex] || "0").replace(/[^0-9.-]/g, ""));
+    if (!pathValue || !Number.isFinite(views) || views < 0) continue;
+    viewsByPath.set(pathValue, (viewsByPath.get(pathValue) || 0) + views);
+  }
+
+  if (viewsByPath.size === 0) {
+    throw new Error("CSV 內沒有有效的頁面瀏覽資料。");
+  }
+
+  return {
+    source: "Vercel Analytics CSV",
+    fileName,
+    importedAt: new Date().toISOString(),
+    totalViews: [...viewsByPath.values()].reduce((total, views) => total + views, 0),
+    viewsByPath: Object.fromEntries(viewsByPath)
+  };
+}
+
+function loadAnalyticsSnapshot(posts) {
+  if (!fs.existsSync(analyticsSnapshotPath)) return null;
+  const snapshot = JSON.parse(fs.readFileSync(analyticsSnapshotPath, "utf8"));
+  const viewsByPath = snapshot.viewsByPath || {};
+
+  return {
+    ok: true,
+    configured: true,
+    source: snapshot.source || "Vercel Analytics CSV",
+    rangeLabel: "Vercel 匯出檔所選期間",
+    totalViews: Number(snapshot.totalViews || 0),
+    posts: posts.map((post) => ({ ...post, views: Number(viewsByPath[post.path] || 0) })),
+    updatedAt: snapshot.importedAt,
+    fileName: snapshot.fileName
+  };
+}
+
 async function loadAnalyticsOverview() {
   const config = loadAnalyticsConfig();
   const range = getAnalyticsDateRange(config.days);
@@ -365,6 +477,9 @@ async function loadAnalyticsOverview() {
       date: post.date
     }));
 
+  const snapshot = loadAnalyticsSnapshot(posts);
+  if (snapshot) return snapshot;
+
   if (!config.token || !config.projectId) {
     return {
       ok: true,
@@ -373,9 +488,9 @@ async function loadAnalyticsOverview() {
       totalViews: 0,
       posts: posts.map((post) => ({ ...post, views: 0 })),
       setup: [
-        "請建立 cms/analytics.local.json。",
-        "把 cms/analytics.example.json 複製成 analytics.local.json。",
-        "填入 Vercel Project ID 與 Vercel Token 後重新整理 CMS。"
+        "到 Vercel Project → Analytics → Page Views。",
+        "在 Pages 面板右下角選單按 Export as CSV。",
+        "回到 CMS 按『匯入 Vercel CSV』，選擇剛下載的檔案。"
       ]
     };
   }
@@ -416,6 +531,12 @@ async function loadAnalyticsOverview() {
     })),
     updatedAt: new Date().toISOString()
   };
+}
+
+function saveAnalyticsCsv(csvText, fileName) {
+  const snapshot = parseAnalyticsCsv(csvText, fileName);
+  fs.writeFileSync(analyticsSnapshotPath, JSON.stringify(snapshot, null, 2) + "\n");
+  return snapshot;
 }
 
 function saveContents(contents) {
@@ -974,6 +1095,21 @@ const server = http.createServer(async (request, response) => {
       return;
     }
 
+    if (request.method === "POST" && url.pathname === "/api/analytics/import") {
+      if (!requireAuth(request, response)) return;
+      try {
+        const body = await readJsonBody(request);
+        saveAnalyticsCsv(body.csv, body.fileName);
+        sendJson(response, 200, await loadAnalyticsOverview());
+      } catch (error) {
+        sendJson(response, 400, {
+          ok: false,
+          error: error instanceof Error ? error.message : String(error)
+        });
+      }
+      return;
+    }
+
     if (request.method === "POST" && url.pathname === "/api/posts") {
       if (!requireAuth(request, response)) return;
       const body = await readJsonBody(request);
@@ -1048,6 +1184,10 @@ const server = http.createServer(async (request, response) => {
   }
 });
 
-server.listen(port, "127.0.0.1", () => {
-  console.log(`WildDogHere CMS running at http://127.0.0.1:${port}`);
-});
+if (require.main === module) {
+  server.listen(port, "127.0.0.1", () => {
+    console.log(`WildDogHere CMS running at http://127.0.0.1:${port}`);
+  });
+}
+
+module.exports = { parseAnalyticsCsv };
