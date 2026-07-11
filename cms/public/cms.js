@@ -51,7 +51,6 @@ const bodyEditor = document.querySelector("#bodyEditor");
 const inlineImageInput = document.querySelector("#inlineImageInput");
 const watermarkEnabled = document.querySelector("#watermarkEnabled");
 const emojiGallery = document.querySelector("#emojiGallery");
-const analyticsButton = document.querySelector("#analyticsButton");
 const refreshAnalyticsButton = document.querySelector("#refreshAnalyticsButton");
 const analyticsImportButton = document.querySelector("#analyticsImportButton");
 const analyticsCsvInput = document.querySelector("#analyticsCsvInput");
@@ -475,9 +474,9 @@ function formatNumber(value) {
 function renderAnalyticsSetup(result) {
   analyticsSummary.innerHTML = `
     <div class="analytics-card">
-      <span>尚未匯入流量</span>
-      <strong>請匯入 Vercel CSV</strong>
-      <p>先在 Vercel Analytics 的 Pages 面板匯出 CSV，再按上方「匯入 Vercel CSV」。資料只保存在這台電腦。</p>
+      <span>即時流量</span>
+      <strong>按「查看網站 Views」</strong>
+      <p>頁面頂部只有一顆主要流量按鈕，可直接開啟 WildDogHere 的 Vercel Analytics。CSV 僅用於在 CMS 保留一份備份。</p>
     </div>
   `;
   analyticsTable.innerHTML = `
@@ -546,11 +545,12 @@ function renderAnalytics(result) {
   `;
 }
 
-async function loadAnalytics() {
-  analyticsPanel.scrollIntoView({ behavior: "smooth", block: "start" });
+async function loadAnalytics(options = {}) {
+  if (options.scroll) {
+    analyticsPanel.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
   analyticsSummary.innerHTML = `<div class="analytics-card"><span>讀取中</span><strong>正在更新流量...</strong></div>`;
   analyticsTable.innerHTML = "";
-  analyticsButton.disabled = true;
   refreshAnalyticsButton.disabled = true;
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 18000);
@@ -582,7 +582,6 @@ async function loadAnalytics() {
     document.querySelector("#analyticsRetryButton").addEventListener("click", loadAnalytics);
   } finally {
     clearTimeout(timeout);
-    analyticsButton.disabled = false;
     refreshAnalyticsButton.disabled = false;
   }
 }
@@ -911,8 +910,7 @@ document.querySelector("#buildButton").addEventListener("click", async () => {
   buildOutput.textContent = result.output || result.error || "沒有輸出";
 });
 
-analyticsButton.addEventListener("click", loadAnalytics);
-refreshAnalyticsButton.addEventListener("click", loadAnalytics);
+refreshAnalyticsButton.addEventListener("click", () => loadAnalytics({ scroll: true }));
 analyticsImportButton.addEventListener("click", () => analyticsCsvInput.click());
 analyticsCsvInput.addEventListener("change", () => importAnalyticsCsv(analyticsCsvInput.files?.[0]));
 
@@ -923,6 +921,8 @@ document.querySelector("#logoutButton").addEventListener("click", async () => {
 
 renderEmojiGallery();
 
-loadAll().catch((error) => {
-  buildOutput.textContent = error.message;
-});
+loadAll()
+  .then(() => loadAnalytics())
+  .catch((error) => {
+    buildOutput.textContent = error.message;
+  });

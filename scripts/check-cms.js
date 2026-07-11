@@ -147,7 +147,7 @@ if (!cmsHtml.includes("logoutButton")) {
   throw new Error("CMS logout button is missing.");
 }
 
-if (!cmsHtml.includes("查看流量") || !cmsHtml.includes("vercel.com/dashboard")) {
+if (!cmsHtml.includes("查看網站 Views") || !cmsHtml.includes("vercel.com/wilddog/wilddoghere-site/analytics")) {
   throw new Error("CMS analytics dashboard link is missing.");
 }
 
@@ -169,7 +169,7 @@ if (
   !cmsHtml.includes("analyticsTable") ||
   !cmsHtml.includes("analyticsImportButton") ||
   !cmsHtml.includes("analyticsCsvInput") ||
-  !cmsHtml.includes("匯入 Vercel CSV")
+  !cmsHtml.includes("匯入 CSV 備份")
 ) {
   throw new Error("CMS analytics panel is missing.");
 }

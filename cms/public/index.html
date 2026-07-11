@@ -14,9 +14,14 @@
       </div>
       <div class="topbar-actions">
         <button id="newPostButton" class="ghost">新增文章</button>
-        <button id="analyticsButton" class="ghost" type="button">查看流量</button>
-        <a class="button-link ghost" href="https://vercel.com/dashboard" target="_blank" rel="noreferrer">
-          Vercel 流量後台
+        <a
+          id="analyticsButton"
+          class="button-link ghost"
+          href="https://vercel.com/wilddog/wilddoghere-site/analytics"
+          target="_blank"
+          rel="noreferrer"
+        >
+          查看網站 Views
         </a>
         <button id="buildButton">檢查建置</button>
         <button id="logoutButton" class="ghost">登出</button>
@@ -196,14 +201,13 @@
               <h2>流量總覽</h2>
             </div>
             <div class="analytics-actions">
-              <a class="button-link ghost" href="https://vercel.com/dashboard" target="_blank" rel="noreferrer">開啟 Vercel Analytics</a>
-              <button id="analyticsImportButton" class="ghost" type="button">匯入 Vercel CSV</button>
-              <button id="refreshAnalyticsButton" class="ghost" type="button">重新整理流量</button>
+              <button id="analyticsImportButton" class="ghost" type="button">匯入 CSV 備份</button>
+              <button id="refreshAnalyticsButton" class="ghost" type="button">顯示已匯入數字</button>
               <input id="analyticsCsvInput" class="hidden-file" type="file" accept=".csv,text/csv" />
             </div>
           </div>
           <div id="analyticsSummary" class="analytics-summary">
-            點選「查看流量」後，可查看網站總瀏覽數與每篇文章瀏覽數；第一次使用請先匯入 Vercel Pages CSV。
+            按頁面頂部「查看網站 Views」即可查看即時總 views 與各頁 views；此處會自動顯示上次匯入的備份數字。
           </div>
           <div id="analyticsTable" class="analytics-table"></div>
         </section>
