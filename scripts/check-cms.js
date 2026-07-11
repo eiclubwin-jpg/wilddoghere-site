@@ -229,8 +229,8 @@ const sitemapFile = fs.readFileSync(path.join(root, "app", "sitemap.ts"), "utf8"
 const robotsFile = fs.readFileSync(path.join(root, "app", "robots.ts"), "utf8");
 const feedFile = fs.readFileSync(path.join(root, "app", "feed.xml", "route.ts"), "utf8");
 
-if (!appLayout.includes("/_vercel/insights/script.js")) {
-  throw new Error("Vercel Analytics tracking script is missing.");
+if (!appLayout.includes("@vercel/analytics/next") || !appLayout.includes("<Analytics />")) {
+  throw new Error("Official Vercel Analytics tracking component is missing.");
 }
 
 if (

@@ -11,7 +11,7 @@ WildDogHere 的正式流量由 Vercel Web Analytics 收集。CMS 可顯示：
 1. 進入 Vercel 並開啟 `wilddoghere-site` 專案。
 2. 點選左側 `Analytics`。
 3. 若尚未啟用，按 `Enable Analytics`。
-4. 網站已載入 Vercel Analytics 追蹤程式，啟用後會開始累積正式站流量。
+4. 網站已使用官方 `@vercel/analytics` 元件，啟用後會開始累積正式站流量。
 
 Vercel Web Analytics 官方說明：<https://vercel.com/docs/analytics>
 

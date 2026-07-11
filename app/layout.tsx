@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
-import Script from "next/script";
+import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -63,7 +63,7 @@ export default function RootLayout({
     <html lang="zh-Hant">
       <body>
         {children}
-        <Script src="/_vercel/insights/script.js" strategy="afterInteractive" />
+        <Analytics />
       </body>
     </html>
   );
