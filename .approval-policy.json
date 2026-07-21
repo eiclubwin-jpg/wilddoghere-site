@@ -6,5 +6,11 @@
   "protected_entrypoints": ["middleware.ts", "next.config.ts", "package.json"],
   "manifest_exclude_dirs": ["data", "images"],
   "allowed_development_modes": ["development", "test"],
+  "last_test_results": [
+    "npm run typecheck: passed",
+    "npm run cms:check: passed (27 articles)",
+    "npm run build: passed (29 static pages)",
+    "middleware RSA signature verification: passed"
+  ],
   "policy_version": "1"
 }
