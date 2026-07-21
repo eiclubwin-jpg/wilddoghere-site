@@ -4,6 +4,7 @@
   "approval_period_months": 3,
   "version_binding": true,
   "protected_entrypoints": ["middleware.ts", "next.config.ts", "package.json"],
+  "manifest_exclude_dirs": ["data", "images"],
   "allowed_development_modes": ["development", "test"],
   "policy_version": "1"
 }

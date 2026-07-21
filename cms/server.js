@@ -874,6 +874,35 @@ async function waitForLivePost(postUrl, title) {
   };
 }
 
+async function waitForLivePostRemoval(postUrl, title) {
+  const maxAttempts = 30;
+  const delayMs = 10000;
+  let output = `\n開始確認正式網站是否已移除文章：${postUrl}\n`;
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    const result = await checkLivePost(postUrl, title);
+    const removed = result.status === 404 || (result.status === 200 && !result.matchedTitle);
+
+    if (removed) {
+      return {
+        ok: true,
+        output: `${output}第 ${attempt} 次確認：正式網站已移除這篇文章。\n`
+      };
+    }
+
+    output += `第 ${attempt} 次確認：舊文章仍存在（HTTP ${result.status || "無回應"}）。\n`;
+
+    if (attempt < maxAttempts) {
+      await sleep(delayMs);
+    }
+  }
+
+  return {
+    ok: false,
+    output: `${output}已推送到 GitHub，但等待正式網站移除文章超過 5 分鐘。請到 Vercel 檢查部署狀態，或稍後重新整理正式網站。\n`
+  };
+}
+
 function toGitPath(filePath) {
   return path.relative(rootDir, filePath).split(path.sep).join("/");
 }
@@ -912,6 +941,7 @@ function collectReferencedImagePaths() {
 
 async function runPublishSite(response, post) {
   const deployPaths = ["data/contents.json", ...collectReferencedImagePaths()];
+  const isDeletion = post?.deleted === true;
   let output = "";
 
   async function step(label, command, args) {
@@ -962,15 +992,20 @@ async function runPublishSite(response, post) {
     if (!status.output.trim()) {
       const postUrl = post?.slug ? `https://www.wilddoghere.com/posts/${post.slug}` : "";
       await publishStep("git push origin HEAD:main", "git", ["push", "origin", "HEAD:main"]);
+      let liveOk = true;
       if (postUrl) {
-        const liveCheck = await waitForLivePost(postUrl, post?.title || "");
+        const liveCheck = isDeletion
+          ? await waitForLivePostRemoval(postUrl, post?.title || "")
+          : await waitForLivePost(postUrl, post?.title || "");
         output += liveCheck.output;
+        liveOk = liveCheck.ok;
       }
       sendJson(response, 200, {
         ok: true,
         skipped: true,
+        liveOk,
         postUrl,
-        output: `${output}\n沒有新的文章或圖片變更需要提交；已確認推送目前 main 到 GitHub。${postUrl ? `\n文章網址：${postUrl}` : ""}`
+        output: `${output}\n沒有新的文章或圖片變更需要提交；已確認推送目前 main 到 GitHub。${postUrl ? isDeletion ? `\n已刪除文章網址：${postUrl}` : `\n文章網址：${postUrl}` : ""}`
       });
       return;
     }
@@ -979,7 +1014,7 @@ async function runPublishSite(response, post) {
     await publishStep("git commit", "git", [
       "commit",
       "-m",
-      `Publish CMS article: ${safeTitle}`
+      `${isDeletion ? "Delete" : "Publish"} CMS article: ${safeTitle}`
     ]);
     await publishStep("git push origin HEAD:main", "git", ["push", "origin", "HEAD:main"]);
 
@@ -987,7 +1022,9 @@ async function runPublishSite(response, post) {
     let liveOk = true;
 
     if (postUrl) {
-      const liveCheck = await waitForLivePost(postUrl, post?.title || "");
+      const liveCheck = isDeletion
+        ? await waitForLivePostRemoval(postUrl, post?.title || "")
+        : await waitForLivePost(postUrl, post?.title || "");
       output += liveCheck.output;
       liveOk = liveCheck.ok;
     }
@@ -996,7 +1033,7 @@ async function runPublishSite(response, post) {
       ok: true,
       liveOk,
       postUrl,
-      output: `${output}\n已推送到 GitHub。${liveOk ? "正式網站已確認可讀。" : "正式網站尚未確認完成，請查看上方等待結果。"}${postUrl ? `\n文章網址：${postUrl}` : ""}`
+      output: `${output}\n已推送到 GitHub。${liveOk ? isDeletion ? "正式網站已確認移除文章。" : "正式網站已確認可讀。" : "正式網站尚未確認完成，請查看上方等待結果。"}${postUrl ? isDeletion ? `\n已刪除文章網址：${postUrl}` : `\n文章網址：${postUrl}` : ""}`
     });
   } catch (error) {
     sendJson(response, 500, {

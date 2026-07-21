@@ -139,6 +139,10 @@ if (!cmsHtml.includes("一鍵發布到正式網站")) {
   throw new Error("CMS one-click website publish button is missing.");
 }
 
+if (!cmsHtml.includes("刪除並更新正式網站")) {
+  throw new Error("CMS delete-and-publish button is missing.");
+}
+
 if (!cmsHtml.includes("只儲存在 CMS")) {
   throw new Error("CMS local-only save label is missing.");
 }
@@ -178,6 +182,14 @@ const cmsClient = fs.readFileSync(path.join(root, "cms", "public", "cms.js"), "u
 
 if (!cmsClient.includes("/api/publish-site") || !cmsClient.includes("postUrl")) {
   throw new Error("CMS one-click publish client flow is incomplete.");
+}
+
+if (
+  !cmsClient.includes("deleted: true") ||
+  !cmsClient.includes("deleting: true") ||
+  !server.includes("waitForLivePostRemoval")
+) {
+  throw new Error("CMS deletion must publish to GitHub and confirm removal from the live site.");
 }
 
 if (!cmsClient.includes("getYouTubeVideoId") || !cmsHtml.includes("insertYoutubeButton")) {
@@ -257,6 +269,16 @@ if (!globalsCss.includes(".article-body img.emoji-sticker") || !cmsCss.includes(
 
 const analyticsDoc = fs.readFileSync(path.join(root, "docs", "analytics-views.md"), "utf8");
 const gitignore = fs.readFileSync(path.join(root, ".gitignore"), "utf8");
+const approvalPolicy = JSON.parse(
+  fs.readFileSync(path.join(root, ".approval-policy.json"), "utf8")
+);
+
+if (
+  !approvalPolicy.manifest_exclude_dirs?.includes("data") ||
+  !approvalPolicy.manifest_exclude_dirs?.includes("images")
+) {
+  throw new Error("CMS article data and uploaded images must not require code reapproval.");
+}
 
 if (!analyticsDoc.includes("cms/analytics.snapshot.json") || !analyticsDoc.includes("每篇文章瀏覽數") || !analyticsDoc.includes("Export as CSV")) {
   throw new Error("Analytics setup documentation is incomplete.");

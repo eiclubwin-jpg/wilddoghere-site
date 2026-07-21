@@ -815,12 +815,15 @@ async function savePost(statusOverride) {
   return result.post;
 }
 
-async function publishSite(post) {
+async function publishSite(post, options = {}) {
+  const deleting = options.deleting === true;
   const publishButton = document.querySelector("#publishButton");
+  const deleteButton = document.querySelector("#deleteButton");
   publishButton.disabled = true;
-  publishButton.textContent = "正在一鍵發布...";
+  deleteButton.disabled = true;
+  publishButton.textContent = deleting ? "正在同步刪除..." : "正在一鍵發布...";
   buildOutput.textContent = [
-    "正在更新正式網站...",
+    deleting ? "正在從正式網站刪除文章..." : "正在更新正式網站...",
     "1. 檢查 CMS 資料",
     "2. 檢查 TypeScript",
     "3. 建置網站",
@@ -840,22 +843,35 @@ async function publishSite(post) {
 
     if (!result.ok) {
       saveState.textContent = "正式更新失敗";
-      alert("文章已儲存，但正式網站更新失敗。請查看下方檢查結果。");
+      alert(
+        deleting
+          ? "文章已從本機 CMS 刪除，但正式網站更新失敗。請查看下方檢查結果。"
+          : "文章已儲存，但正式網站更新失敗。請查看下方檢查結果。"
+      );
       return false;
     }
 
     if (result.liveOk === false) {
       saveState.textContent = "已推送，等待 Vercel";
-      alert("文章已推送到 GitHub，但正式網站尚未確認完成。請查看下方結果，稍後重新整理正式網址。");
+      alert(
+        deleting
+          ? "刪除已推送到 GitHub，但正式網站尚未確認完成。請查看下方結果，稍後重新整理正式網站。"
+          : "文章已推送到 GitHub，但正式網站尚未確認完成。請查看下方結果，稍後重新整理正式網址。"
+      );
     } else {
-      saveState.textContent = result.skipped ? "正式網站已確認" : "已發布到正式網站";
+      saveState.textContent = deleting
+        ? "已從正式網站刪除"
+        : result.skipped
+          ? "正式網站已確認"
+          : "已發布到正式網站";
     }
-    if (result.postUrl) {
+    if (result.postUrl && !deleting) {
       buildOutput.textContent += `\n\n正式文章網址：${result.postUrl}`;
     }
     return true;
   } finally {
     publishButton.disabled = false;
+    deleteButton.disabled = false;
     publishButton.textContent = "一鍵發布到正式網站";
   }
 }
@@ -891,16 +907,32 @@ document.querySelector("#publishButton").addEventListener("click", async () => {
 
 document.querySelector("#deleteButton").addEventListener("click", async () => {
   const post = getFormData();
-  if (!state.currentId || !confirm(`確定刪除「${post.title}」？`)) return;
-  await fetch("/api/delete", {
+  if (
+    !state.currentId ||
+    !confirm(`確定刪除「${post.title}」，並同步更新正式網站？`)
+  ) {
+    return;
+  }
+
+  saveState.textContent = "正在刪除...";
+  const response = await fetch("/api/delete", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ id: state.currentId })
   });
+  const result = await readJson(response);
+  if (!result.ok) {
+    saveState.textContent = "刪除失敗";
+    alert(result.error || "刪除失敗");
+    return;
+  }
+
   const postsResponse = await fetch("/api/posts");
   state.posts = await readJson(postsResponse);
   renderList();
   setFormData(state.posts[0] || {});
+  saveState.textContent = "已從 CMS 刪除，正在更新正式網站";
+  await publishSite({ ...post, deleted: true }, { deleting: true });
 });
 
 document.querySelector("#buildButton").addEventListener("click", async () => {
