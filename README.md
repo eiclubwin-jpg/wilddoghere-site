@@ -7,7 +7,7 @@ Next.js + Tailwind CSS + TypeScript 製作的部落格型品牌網站 MVP。
 https://www.wilddoghere.com
 ```
 
-正式網站不再依賴 CalMagic 控制中心。`middleware.ts` 會在 Vercel 生產環境驗證 WildDogHere 自己的季度核准 token；需要設定 `WILDDOG_APPROVAL_TOKEN`、`WILDDOG_PUBLIC_KEY` 與 `WILDDOG_APPROVED_VERSION` 三個環境變數。缺少、過期、測試用或版本不一致的核准會維持封鎖畫面。
+正式網站不再依賴 CalMagic 控制中心，也不需要季度核准 token；Vercel 部署完成後即可持續公開使用。
 
 ## 本機預覽
 

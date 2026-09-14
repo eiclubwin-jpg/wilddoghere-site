@@ -269,17 +269,6 @@ if (!globalsCss.includes(".article-body img.emoji-sticker") || !cmsCss.includes(
 
 const analyticsDoc = fs.readFileSync(path.join(root, "docs", "analytics-views.md"), "utf8");
 const gitignore = fs.readFileSync(path.join(root, ".gitignore"), "utf8");
-const approvalPolicy = JSON.parse(
-  fs.readFileSync(path.join(root, ".approval-policy.json"), "utf8")
-);
-
-if (
-  !approvalPolicy.manifest_exclude_dirs?.includes("data") ||
-  !approvalPolicy.manifest_exclude_dirs?.includes("images")
-) {
-  throw new Error("CMS article data and uploaded images must not require code reapproval.");
-}
-
 if (!analyticsDoc.includes("cms/analytics.snapshot.json") || !analyticsDoc.includes("每篇文章瀏覽數") || !analyticsDoc.includes("Export as CSV")) {
   throw new Error("Analytics setup documentation is incomplete.");
 }
