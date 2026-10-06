@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
+import { CollabAssistant } from "@/components/CollabAssistant";
+import { CollabInquiryForm } from "@/components/CollabInquiryForm";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
+import { COLLAB_EMAIL, LINE_ADD_FRIEND_URL } from "@/lib/collab-config";
+import { collabCategories, collabFormats, presetCollabFaqs } from "@/lib/collab-faq";
 
 export const metadata: Metadata = {
   title: "合作洽詢",
@@ -8,8 +12,12 @@ export const metadata: Metadata = {
   alternates: { canonical: "/collaboration" }
 };
 
-const directions = ["親子用品與家庭玩具", "3C、拍攝與收納配件", "美食體驗與家族聚餐", "親子旅遊、住宿與景點", "生活用品與家庭實測", "品牌活動與短影音紀錄"];
-const formats = ["部落格長文與 SEO 實測", "YouTube 影片與 Shorts", "Instagram Reels 與圖文", "親子實際使用紀錄", "多平台內容整合", "活動、住宿與餐飲體驗"];
+// 品類與內容形式改放在 lib/collab-faq.ts，AI 小幫手也會用到同一份
+const directions = collabCategories;
+const formats = collabFormats;
+
+const heroOutlineButton =
+  "inline-flex min-h-12 items-center rounded-full border border-cream/35 px-6 py-3 font-bold text-cream transition hover:bg-cream/10";
 
 export default function CollaborationPage() {
   return (
@@ -20,7 +28,13 @@ export default function CollaborationPage() {
           <p className="text-sm font-bold uppercase tracking-[0.16em] text-butter">Work With Us</p>
           <h1 className="mt-4 max-w-4xl text-4xl font-black leading-tight sm:text-5xl">把品牌放進真實家庭情境，看它怎麼被使用。</h1>
           <p className="mt-6 max-w-3xl text-lg leading-9 text-cream/78">WildDogHere 以野狗爸與野狗媽的雙視角，結合孩子真實反應與家庭日常，製作有使用脈絡、有優缺點也有溫度的內容。</p>
-          <a href="mailto:wilddoghere@gmail.com" className="mt-8 inline-flex min-h-12 items-center rounded-full bg-butter px-6 py-3 font-bold text-coffee">wilddoghere@gmail.com</a>
+          <div className="mt-8 flex flex-wrap gap-3">
+            <a href={`mailto:${COLLAB_EMAIL}`} className="inline-flex min-h-12 items-center rounded-full bg-butter px-6 py-3 font-bold text-coffee">{COLLAB_EMAIL}</a>
+            {LINE_ADD_FRIEND_URL ? (
+              <a href={LINE_ADD_FRIEND_URL} target="_blank" rel="noreferrer" className={heroOutlineButton}>LINE 洽詢</a>
+            ) : null}
+            <a href="#inquiry" className={heroOutlineButton}>填寫合作需求</a>
+          </div>
         </section>
 
         <div className="mx-auto mt-12 grid max-w-6xl gap-6 lg:grid-cols-2">
@@ -46,6 +60,11 @@ export default function CollaborationPage() {
             <div><h3 className="font-bold text-clay">保留觀點</h3><p className="mt-2 text-sm leading-7 text-cocoa/68">野狗軍團會保留實際使用感受與優缺點描述。</p></div>
           </div>
         </section>
+
+        <div className="mx-auto mt-12 grid max-w-6xl items-start gap-6 lg:grid-cols-2">
+          <CollabAssistant presets={presetCollabFaqs} email={COLLAB_EMAIL} lineUrl={LINE_ADD_FRIEND_URL} />
+          <CollabInquiryForm formats={formats} email={COLLAB_EMAIL} lineUrl={LINE_ADD_FRIEND_URL} />
+        </div>
       </main>
       <SiteFooter />
     </>
